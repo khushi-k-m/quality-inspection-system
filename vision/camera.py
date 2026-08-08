@@ -15,6 +15,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
 from quality.inspector import save_inspection
+from reports.generate_report import generate_report
 
 
 # ======================================================
@@ -461,18 +462,26 @@ while True:
                     inspector="Operator-1"
                 )
 
+                # ------------------------------------------
+                # GENERATE AUTOMATIC PDF REPORT
+                # ------------------------------------------
 
-                print(
-                    "✅ Database record saved."
-                )
+                try:
 
+                    generate_report()
+
+                    print("✅ PDF inspection report generated automatically.")
+
+                except Exception as error:
+
+                    print("❌ PDF report generation failed:")
+                    print(error)
+
+                print("✅ Database record saved.")
 
             except Exception as error:
 
-                print(
-                    "❌ Database error:"
-                )
-
+                print("❌ Database error:")
                 print(error)
 
 
