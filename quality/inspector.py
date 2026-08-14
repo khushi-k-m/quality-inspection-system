@@ -1,11 +1,13 @@
 import sqlite3
 from pathlib import Path
 
+
 # ======================================================
 # DATABASE PATH
 # ======================================================
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
+
 DATABASE_PATH = ROOT_DIR / "database" / "inspection.db"
 
 
@@ -23,13 +25,18 @@ def save_inspection(
     other,
     total_defects,
     status,
+    quality_score=100,
+    severity="NONE",
+    remarks="",
     inspector="AI System"
 ):
 
     conn = sqlite3.connect(DATABASE_PATH)
+
     cursor = conn.cursor()
 
-    cursor.execute("""
+    cursor.execute(
+        """
         INSERT INTO inspections(
             inspection_id,
             timestamp,
@@ -40,27 +47,41 @@ def save_inspection(
             other,
             total_defects,
             status,
-            inspector
+            inspector,
+            quality_score,
+            severity,
+            remarks
         )
-        VALUES(?,?,?,?,?,?,?,?,?,?)
-    """, (
-        inspection_id,
-        timestamp,
-        image_path,
-        scratches,
-        dents,
-        rust,
-        other,
-        total_defects,
-        status,
-        inspector
-    ))
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            inspection_id,
+            timestamp,
+            image_path,
+            scratches,
+            dents,
+            rust,
+            other,
+            total_defects,
+            status,
+            inspector,
+            quality_score,
+            severity,
+            remarks
+        )
+    )
 
     conn.commit()
     conn.close()
 
-    print("======================================")
+    print("=" * 50)
     print("Inspection Saved Successfully")
+    print("=" * 50)
+
     print(f"Inspection ID : {inspection_id}")
     print(f"Status        : {status}")
-    print("======================================")
+    print(f"Quality Score : {quality_score}%")
+    print(f"Severity      : {severity}")
+    print(f"Remarks       : {remarks}")
+
+    print("=" * 50)
