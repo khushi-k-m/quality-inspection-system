@@ -1,12 +1,14 @@
-pip install ultralytics
-pip install opencv-python
-pip install fastapi
-pip install uvicorn
-pip install streamlit
-pip install plotly
-pip install pandas
-pip install numpy
-pip install pillow
-pip install sqlalchemy
-pip install reportlab
-pip install python-multipart
+ultralytics
+opencv-python
+fastapi
+uvicorn[standard]
+streamlit
+plotly
+pandas
+numpy
+pillow
+sqlalchemy
+reportlab
+python-multipart
+PyJWT
+python-dotenv

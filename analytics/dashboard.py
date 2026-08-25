@@ -7,7 +7,7 @@ import plotly.express as px
 
 
 # ======================================================
-# PATHS
+# PROJECT PATHS
 # ======================================================
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
@@ -16,7 +16,7 @@ DATABASE_PATH = ROOT_DIR / "database" / "inspection.db"
 
 
 # ======================================================
-# PAGE CONFIG
+# PAGE CONFIGURATION
 # ======================================================
 
 st.set_page_config(
@@ -63,7 +63,7 @@ st.markdown(
 
 
 # ======================================================
-# DATABASE
+# DATABASE LOADER
 # ======================================================
 
 @st.cache_data(ttl=5)
@@ -81,13 +81,30 @@ def load_inspections():
             rust,
             other,
             total_defects,
+            quality_score,
+            severity,
             status,
             inspector
         FROM inspections
         ORDER BY id DESC
     """
 
-    df = pd.read_sql_query(query, conn)
+    try:
+
+        df = pd.read_sql_query(
+            query,
+            conn
+        )
+
+    except Exception as e:
+
+        conn.close()
+
+        st.error(
+            f"Database error: {e}"
+        )
+
+        st.stop()
 
     conn.close()
 
@@ -106,7 +123,9 @@ df = load_inspections()
 # ======================================================
 
 st.markdown(
-    '<div class="dashboard-title">🏭 Steel Quality Analytics Dashboard</div>',
+    '<div class="dashboard-title">'
+    '🏭 Steel Quality Analytics Dashboard'
+    '</div>',
     unsafe_allow_html=True
 )
 
@@ -119,14 +138,18 @@ st.markdown(
 
 
 # ======================================================
-# REFRESH
+# REFRESH BUTTON
 # ======================================================
 
 col_refresh, col_info = st.columns([1, 5])
 
+
 with col_refresh:
 
-    if st.button("🔄 Refresh Data"):
+    if st.button(
+        "🔄 Refresh Data",
+        use_container_width=True
+    ):
 
         st.cache_data.clear()
 
@@ -151,17 +174,63 @@ if df.empty:
     )
 
     st.info(
-        "Run the camera inspection system and save an inspection first."
+        "Run the camera inspection system "
+        "and save an inspection first."
     )
 
     st.stop()
 
 
 # ======================================================
-# SIDEBAR FILTERS
+# DATA PREPROCESSING
 # ======================================================
 
-st.sidebar.title("🔎 Filters")
+df["timestamp"] = pd.to_datetime(
+    df["timestamp"],
+    errors="coerce"
+)
+
+df["date"] = df["timestamp"].dt.date
+
+
+# Convert numeric fields safely
+
+numeric_columns = [
+    "scratches",
+    "dents",
+    "rust",
+    "other",
+    "total_defects",
+    "quality_score"
+]
+
+for column in numeric_columns:
+
+    df[column] = pd.to_numeric(
+        df[column],
+        errors="coerce"
+    )
+
+
+# Missing quality scores
+
+df["quality_score"] = df[
+    "quality_score"
+].fillna(100)
+
+
+# Missing severity
+
+df["severity"] = df[
+    "severity"
+].fillna("NONE")
+
+
+# ======================================================
+# SIDEBAR
+# ======================================================
+
+st.sidebar.title("🔎 Inspection Filters")
 
 
 # ------------------------------------------------------
@@ -182,19 +251,31 @@ selected_status = st.sidebar.selectbox(
 
 
 # ------------------------------------------------------
+# SEVERITY FILTER
+# ------------------------------------------------------
+
+severity_options = [
+    "ALL",
+    "NONE",
+    "LOW",
+    "MEDIUM",
+    "HIGH"
+]
+
+selected_severity = st.sidebar.selectbox(
+    "Severity",
+    severity_options
+)
+
+
+# ------------------------------------------------------
 # DATE FILTER
 # ------------------------------------------------------
 
-df["timestamp"] = pd.to_datetime(
-    df["timestamp"],
-    errors="coerce"
-)
-
-df["date"] = df["timestamp"].dt.date
-
-
 available_dates = sorted(
-    df["date"].dropna().unique()
+    df["date"]
+    .dropna()
+    .unique()
 )
 
 
@@ -224,6 +305,13 @@ if selected_status != "ALL":
     ]
 
 
+if selected_severity != "ALL":
+
+    filtered_df = filtered_df[
+        filtered_df["severity"] == selected_severity
+    ]
+
+
 if selected_date != "ALL":
 
     filtered_df = filtered_df[
@@ -232,10 +320,26 @@ if selected_date != "ALL":
 
 
 # ======================================================
+# EMPTY FILTER RESULT
+# ======================================================
+
+if filtered_df.empty:
+
+    st.warning(
+        "No inspections match the selected filters."
+    )
+
+    st.stop()
+
+
+# ======================================================
 # KPI CALCULATIONS
 # ======================================================
 
-total_inspections = len(filtered_df)
+total_inspections = len(
+    filtered_df
+)
+
 
 pass_count = len(
     filtered_df[
@@ -243,11 +347,13 @@ pass_count = len(
     ]
 )
 
+
 rework_count = len(
     filtered_df[
         filtered_df["status"] == "REWORK"
     ]
 )
+
 
 fail_count = len(
     filtered_df[
@@ -257,41 +363,64 @@ fail_count = len(
 
 
 # ------------------------------------------------------
-# QUALITY METRICS
+# QUALITY RATES
 # ------------------------------------------------------
 
-if total_inspections > 0:
+quality_rate = (
+    pass_count /
+    total_inspections
+) * 100
 
-    quality_rate = (
-        pass_count /
-        total_inspections
-    ) * 100
 
-    failure_rate = (
-        fail_count /
-        total_inspections
-    ) * 100
+failure_rate = (
+    fail_count /
+    total_inspections
+) * 100
 
-    rework_rate = (
-        rework_count /
-        total_inspections
-    ) * 100
 
-else:
+rework_rate = (
+    rework_count /
+    total_inspections
+) * 100
 
-    quality_rate = 0
-    failure_rate = 0
-    rework_rate = 0
+
+# ------------------------------------------------------
+# QUALITY SCORE
+# ------------------------------------------------------
+
+average_quality_score = (
+    filtered_df["quality_score"]
+    .mean()
+)
+
+
+# ------------------------------------------------------
+# DEFECT METRICS
+# ------------------------------------------------------
+
+total_defects = int(
+    filtered_df["total_defects"]
+    .sum()
+)
+
+
+average_defects = (
+    total_defects /
+    total_inspections
+)
 
 
 # ======================================================
-# KPI CARDS
+# PRODUCTION OVERVIEW
 # ======================================================
 
 st.markdown(
-    '<div class="section-title">📊 Production Overview</div>',
+    '<div class="section-title">'
+    '📊 Production Overview'
+    '</div>',
     unsafe_allow_html=True
 )
+
 
 col1, col2, col3, col4, col5 = st.columns(5)
 
@@ -307,7 +436,7 @@ with col1:
 with col2:
 
     st.metric(
-        "PASS",
+        "✅ PASS",
         pass_count
     )
 
@@ -315,7 +444,7 @@ with col2:
 with col3:
 
     st.metric(
-        "REWORK",
+        "⚠️ REWORK",
         rework_count
     )
 
@@ -323,7 +452,7 @@ with col3:
 with col4:
 
     st.metric(
-        "FAIL",
+        "❌ FAIL",
         fail_count
     )
 
@@ -331,8 +460,8 @@ with col4:
 with col5:
 
     st.metric(
-        "Quality Rate",
-        f"{quality_rate:.1f}%"
+        "⭐ Avg Quality Score",
+        f"{average_quality_score:.1f}%"
     )
 
 
@@ -349,12 +478,20 @@ col1, col2, col3, col4 = st.columns(4)
 with col1:
 
     st.metric(
+        "Quality Rate",
+        f"{quality_rate:.1f}%"
+    )
+
+
+with col2:
+
+    st.metric(
         "Failure Rate",
         f"{failure_rate:.1f}%"
     )
 
 
-with col2:
+with col3:
 
     st.metric(
         "Rework Rate",
@@ -362,11 +499,7 @@ with col2:
     )
 
 
-with col3:
-
-    total_defects = int(
-        filtered_df["total_defects"].sum()
-    )
+with col4:
 
     st.metric(
         "Total Defects",
@@ -374,34 +507,19 @@ with col3:
     )
 
 
-with col4:
-
-    if total_inspections > 0:
-
-        avg_defects = (
-            total_defects /
-            total_inspections
-        )
-
-    else:
-
-        avg_defects = 0
-
-    st.metric(
-        "Avg Defects / Inspection",
-        f"{avg_defects:.2f}"
-    )
-
-
 st.divider()
+
+
+# ======================================================
+# STATUS + SEVERITY
+# ======================================================
+
+col_left, col_right = st.columns(2)
 
 
 # ======================================================
 # STATUS DISTRIBUTION
 # ======================================================
-
-col_left, col_right = st.columns(2)
-
 
 with col_left:
 
@@ -421,15 +539,10 @@ with col_left:
     ]
 
     fig_status = px.pie(
-
         status_data,
-
         names="Status",
-
         values="Count",
-
         hole=0.45,
-
         title="PASS / REWORK / FAIL"
     )
 
@@ -444,54 +557,105 @@ with col_left:
 
 
 # ======================================================
-# DEFECT DISTRIBUTION
+# SEVERITY DISTRIBUTION
 # ======================================================
 
 with col_right:
 
     st.subheader(
-        "🔧 Defect Distribution"
+        "🚨 Severity Distribution"
     )
 
-    defect_data = pd.DataFrame({
+    severity_data = (
+        filtered_df["severity"]
+        .value_counts()
+        .reset_index()
+    )
 
-        "Defect Type": [
-            "Scratches",
-            "Dents",
-            "Rust",
-            "Other"
-        ],
+    severity_data.columns = [
+        "Severity",
+        "Count"
+    ]
 
-        "Count": [
+    fig_severity = px.bar(
+        severity_data,
+        x="Severity",
+        y="Count",
+        text="Count",
+        title="Inspection Severity"
+    )
 
-            int(
-                filtered_df["scratches"].sum()
-            ),
+    fig_severity.update_traces(
+        textposition="outside"
+    )
 
-            int(
-                filtered_df["dents"].sum()
-            ),
+    st.plotly_chart(
+        fig_severity,
+        use_container_width=True
+    )
 
-            int(
-                filtered_df["rust"].sum()
-            ),
 
-            int(
-                filtered_df["other"].sum()
-            )
-        ]
-    })
+# ======================================================
+# DEFECT DISTRIBUTION
+# ======================================================
+
+st.subheader(
+    "🔍 Defect Distribution"
+)
+
+
+defect_data = pd.DataFrame({
+
+    "Defect Type": [
+        "Scratches",
+        "Dents",
+        "Rust",
+        "Other"
+    ],
+
+    "Count": [
+
+        int(
+            filtered_df[
+                "scratches"
+            ].sum()
+        ),
+
+        int(
+            filtered_df[
+                "dents"
+            ].sum()
+        ),
+
+        int(
+            filtered_df[
+                "rust"
+            ].sum()
+        ),
+
+        int(
+            filtered_df[
+                "other"
+            ].sum()
+        )
+    ]
+})
+
+
+col_left, col_right = st.columns(2)
+
+
+# ------------------------------------------------------
+# DEFECT BAR
+# ------------------------------------------------------
+
+with col_left:
 
     fig_defects = px.bar(
-
         defect_data,
-
         x="Defect Type",
-
         y="Count",
-
         text="Count",
-
         title="Detected Defects"
     )
 
@@ -505,16 +669,82 @@ with col_right:
     )
 
 
+# ------------------------------------------------------
+# DEFECT PIE
+# ------------------------------------------------------
+
+with col_right:
+
+    fig_defect_pie = px.pie(
+        defect_data[
+            defect_data["Count"] > 0
+        ],
+        names="Defect Type",
+        values="Count",
+        hole=0.4,
+        title="Defect Type Distribution"
+    )
+
+    st.plotly_chart(
+        fig_defect_pie,
+        use_container_width=True
+    )
+
+
+# ======================================================
+# QUALITY SCORE TREND
+# ======================================================
+
+st.subheader(
+    "📈 Quality Score Trend"
+)
+
+
+score_trend = filtered_df.copy()
+
+
+score_trend = score_trend.sort_values(
+    "id"
+)
+
+
+fig_score = px.line(
+    score_trend,
+    x="inspection_id",
+    y="quality_score",
+    markers=True,
+    title="Quality Score by Inspection"
+)
+
+
+fig_score.update_yaxes(
+    range=[0, 100],
+    title="Quality Score (%)"
+)
+
+
+fig_score.update_xaxes(
+    title="Inspection ID"
+)
+
+
+st.plotly_chart(
+    fig_score,
+    use_container_width=True
+)
+
+
 # ======================================================
 # DEFECT TREND
 # ======================================================
 
 st.subheader(
-    "📈 Defect Trend"
+    "📉 Defect Trend"
 )
 
 
 trend_df = filtered_df.copy()
+
 
 trend_df["Date"] = (
     trend_df["timestamp"]
@@ -523,9 +753,10 @@ trend_df["Date"] = (
 
 
 daily_defects = (
-
     trend_df
-    .groupby("Date")["total_defects"]
+    .groupby("Date")[
+        "total_defects"
+    ]
     .sum()
     .reset_index()
 )
@@ -534,15 +765,10 @@ daily_defects = (
 if not daily_defects.empty:
 
     fig_trend = px.line(
-
         daily_defects,
-
         x="Date",
-
         y="total_defects",
-
         markers=True,
-
         title="Total Defects Over Time"
     )
 
@@ -556,15 +782,9 @@ if not daily_defects.empty:
         use_container_width=True
     )
 
-else:
-
-    st.info(
-        "Not enough data for defect trend."
-    )
-
 
 # ======================================================
-# INSPECTION TREND
+# DAILY INSPECTION VOLUME
 # ======================================================
 
 st.subheader(
@@ -573,7 +793,6 @@ st.subheader(
 
 
 daily_inspections = (
-
     trend_df
     .groupby("Date")
     .size()
@@ -586,15 +805,10 @@ daily_inspections = (
 if not daily_inspections.empty:
 
     fig_volume = px.bar(
-
         daily_inspections,
-
         x="Date",
-
         y="Inspections",
-
         text="Inspections",
-
         title="Daily Inspection Count"
     )
 
@@ -609,7 +823,38 @@ if not daily_inspections.empty:
 
 
 # ======================================================
-# TOP DEFECT
+# QUALITY SCORE DISTRIBUTION
+# ======================================================
+
+st.subheader(
+    "⭐ Quality Score Distribution"
+)
+
+
+fig_score_distribution = px.histogram(
+    filtered_df,
+    x="quality_score",
+    nbins=10,
+    title="Distribution of Quality Scores",
+    labels={
+        "quality_score": "Quality Score (%)"
+    }
+)
+
+
+fig_score_distribution.update_xaxes(
+    range=[0, 100]
+)
+
+
+st.plotly_chart(
+    fig_score_distribution,
+    use_container_width=True
+)
+
+
+# ======================================================
+# DEFECT ANALYSIS
 # ======================================================
 
 st.subheader(
@@ -620,33 +865,48 @@ st.subheader(
 defect_totals = {
 
     "Scratches": int(
-        filtered_df["scratches"].sum()
+        filtered_df[
+            "scratches"
+        ].sum()
     ),
 
     "Dents": int(
-        filtered_df["dents"].sum()
+        filtered_df[
+            "dents"
+        ].sum()
     ),
 
     "Rust": int(
-        filtered_df["rust"].sum()
+        filtered_df[
+            "rust"
+        ].sum()
     ),
 
     "Other": int(
-        filtered_df["other"].sum()
+        filtered_df[
+            "other"
+        ].sum()
     )
 }
 
 
-if sum(defect_totals.values()) > 0:
+total_detected = sum(
+    defect_totals.values()
+)
+
+
+if total_detected > 0:
 
     most_common_defect = max(
         defect_totals,
         key=defect_totals.get
     )
 
-    most_common_count = defect_totals[
-        most_common_defect
-    ]
+    most_common_count = (
+        defect_totals[
+            most_common_defect
+        ]
+    )
 
     st.success(
         f"Most common defect: "
@@ -658,6 +918,76 @@ else:
 
     st.info(
         "No defects detected in the selected data."
+    )
+
+
+# ======================================================
+# SEVERITY SUMMARY
+# ======================================================
+
+st.subheader(
+    "🚨 Severity Summary"
+)
+
+
+severity_counts = (
+    filtered_df["severity"]
+    .value_counts()
+)
+
+
+col1, col2, col3, col4 = st.columns(4)
+
+
+with col1:
+
+    st.metric(
+        "NONE",
+        int(
+            severity_counts.get(
+                "NONE",
+                0
+            )
+        )
+    )
+
+
+with col2:
+
+    st.metric(
+        "LOW",
+        int(
+            severity_counts.get(
+                "LOW",
+                0
+            )
+        )
+    )
+
+
+with col3:
+
+    st.metric(
+        "MEDIUM",
+        int(
+            severity_counts.get(
+                "MEDIUM",
+                0
+            )
+        )
+    )
+
+
+with col4:
+
+    st.metric(
+        "HIGH",
+        int(
+            severity_counts.get(
+                "HIGH",
+                0
+            )
+        )
     )
 
 
@@ -685,11 +1015,9 @@ display_df = display_df[
     [
         "inspection_id",
         "timestamp",
-        "scratches",
-        "dents",
-        "rust",
-        "other",
         "total_defects",
+        "quality_score",
+        "severity",
         "status",
         "inspector"
     ]
@@ -702,15 +1030,11 @@ display_df.columns = [
 
     "Date & Time",
 
-    "Scratches",
-
-    "Dents",
-
-    "Rust",
-
-    "Other",
-
     "Total Defects",
+
+    "Quality Score",
+
+    "Severity",
 
     "Status",
 
@@ -718,14 +1042,74 @@ display_df.columns = [
 ]
 
 
+display_df["Quality Score"] = (
+    display_df["Quality Score"]
+    .apply(
+        lambda x: f"{x:.0f}%"
+    )
+)
+
+
 st.dataframe(
-
     display_df,
-
     use_container_width=True,
-
     hide_index=True
 )
+
+
+# ======================================================
+# OVERALL QUALITY SUMMARY
+# ======================================================
+
+st.divider()
+
+st.subheader(
+    "🏭 Overall Production Quality"
+)
+
+
+if average_quality_score >= 90:
+
+    overall_status = "EXCELLENT"
+
+elif average_quality_score >= 75:
+
+    overall_status = "GOOD"
+
+elif average_quality_score >= 60:
+
+    overall_status = "NEEDS IMPROVEMENT"
+
+else:
+
+    overall_status = "CRITICAL"
+
+
+col1, col2, col3 = st.columns(3)
+
+
+with col1:
+
+    st.metric(
+        "Average Quality Score",
+        f"{average_quality_score:.1f}%"
+    )
+
+
+with col2:
+
+    st.metric(
+        "Average Defects / Inspection",
+        f"{average_defects:.2f}"
+    )
+
+
+with col3:
+
+    st.metric(
+        "Overall Quality",
+        overall_status
+    )
 
 
 # ======================================================
@@ -736,5 +1120,5 @@ st.divider()
 
 st.caption(
     "AI-Powered Steel Quality Inspection System | "
-    "Production Analytics Module"
+    "YOLO + OpenCV + SQLite + Streamlit + Plotly"
 )
