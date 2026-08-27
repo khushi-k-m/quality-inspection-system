@@ -1,10 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
 from backend.services.camera_service import camera_service
 from backend.dependencies import get_current_user
 import asyncio
 
 router = APIRouter(prefix="/api/camera", tags=["camera"])
+
+
+class CameraStartRequest(BaseModel):
+    material: str = "steel"
 
 
 def mjpeg_generator():
@@ -40,8 +45,8 @@ def camera_status(user=Depends(get_current_user)):
 
 
 @router.post("/start")
-def start_camera(user=Depends(get_current_user)):
-    result = camera_service.start()
+def start_camera(body: CameraStartRequest = CameraStartRequest(), user=Depends(get_current_user)):
+    result = camera_service.start(body.material)
     if not result["success"]:
         raise HTTPException(status_code=500, detail=result["message"])
     return result

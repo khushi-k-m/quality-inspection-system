@@ -56,7 +56,7 @@ export default function Login() {
 
           <div className="login-stats">
             <div className="login-stat">
-              <span className="login-stat__value">4</span>
+              <span className="login-stat__value">10+</span>
               <span className="login-stat__label">Defect Classes</span>
             </div>
             <div className="login-stat">

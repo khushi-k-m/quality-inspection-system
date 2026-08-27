@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { getInspection } from '../api/inspections'
-import { downloadReport } from '../api/reports'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
+import { getMaterialInspection } from '../api/inspections'
+import { getMaterialReportDownload } from '../api/reports'
 import apiClient from '../api/apiClient'
 import Header from '../components/Header'
 import StatusBadge from '../components/StatusBadge'
@@ -11,20 +11,22 @@ import { ArrowLeft, Download, Image } from 'lucide-react'
 
 export default function InspectionDetails() {
   const { id } = useParams()
+  const [searchParams] = useSearchParams()
+  const material = searchParams.get('material') || 'steel'
   const navigate = useNavigate()
-  const [data, setData] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+
+  const [data, setData]         = useState(null)
+  const [loading, setLoading]   = useState(true)
+  const [error, setError]       = useState('')
   const [dlLoading, setDlLoading] = useState(false)
-  const [imgSrc, setImgSrc] = useState(null)
+  const [imgSrc, setImgSrc]     = useState(null)
 
   useEffect(() => {
     setLoading(true)
-    getInspection(id)
+    getMaterialInspection(material, id)
       .then(r => {
         setData(r.data)
         if (r.data.image_url) {
-          // Fetch image with auth header, convert to object URL
           apiClient.get(r.data.image_url, { responseType: 'blob' })
             .then(res => setImgSrc(URL.createObjectURL(res.data)))
             .catch(() => setImgSrc(null))
@@ -32,17 +34,19 @@ export default function InspectionDetails() {
       })
       .catch(err => setError(err.response?.data?.detail || 'Inspection not found.'))
       .finally(() => setLoading(false))
-  }, [id])
+  }, [id, material])
 
-  // Revoke object URL on unmount
   useEffect(() => () => { if (imgSrc) URL.revokeObjectURL(imgSrc) }, [imgSrc])
 
   const handleDownload = async () => {
     setDlLoading(true)
-    try { await downloadReport(id) }
+    try { await getMaterialReportDownload(material, id) }
     catch { alert('Report not available.') }
     finally { setDlLoading(false) }
   }
+
+  // Normalise steel vs metal field names
+  const defectCount = data ? (data.total_defects ?? data.defect_count ?? 0) : 0
 
   return (
     <div className="page">
@@ -53,7 +57,7 @@ export default function InspectionDetails() {
         </button>
 
         {loading && <Loading text="Loading inspection..." />}
-        {error && <ErrorMessage message={error} />}
+        {error   && <ErrorMessage message={error} />}
 
         {!loading && !error && data && (
           <div className="detail-layout">
@@ -63,12 +67,13 @@ export default function InspectionDetails() {
                 <div style={{ marginTop: 16 }}>
                   {[
                     ['Inspection ID', <span className="mono">{data.inspection_id}</span>],
-                    ['Date & Time', data.timestamp],
-                    ['Inspector', data.inspector],
-                    ['Status', <StatusBadge value={data.status} />],
+                    ['Date & Time',   data.timestamp],
+                    ['Material',      data.material || (material === 'steel' ? 'Steel' : 'Metal')],
+                    ['Inspector',     data.inspector],
+                    ['Status',        <StatusBadge value={data.status} />],
                     ['Quality Score', <span style={{ color: 'var(--green)', fontFamily: 'var(--mono)', fontSize: 15 }}>{data.quality_score}%</span>],
-                    ['Severity', <StatusBadge value={data.severity} />],
-                    ['Remarks', data.remarks],
+                    ['Severity',      <StatusBadge value={data.severity} />],
+                    ['Remarks',       data.remarks],
                   ].map(([label, val]) => (
                     <div key={label} className="detail-row">
                       <span style={{ color: 'var(--muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '.7px' }}>{label}</span>
@@ -80,20 +85,50 @@ export default function InspectionDetails() {
 
               <div className="card" style={{ marginTop: 14 }}>
                 <h3 className="card__title">Defect Summary</h3>
-                <div className="defect-counts" style={{ marginTop: 16 }}>
-                  {[
-                    { label: 'Total', value: data.total_defects, color: '#6366f1' },
-                    { label: 'Scratches', value: data.scratches, color: '#f97316' },
-                    { label: 'Dents', value: data.dents, color: '#eab308' },
-                    { label: 'Rust', value: data.rust, color: '#ef4444' },
-                    { label: 'Other', value: data.other, color: '#8b5cf6' },
-                  ].map(d => (
-                    <div key={d.label} className="defect-count-item">
-                      <span className="defect-count-label">{d.label}</span>
-                      <span className="defect-count-value" style={{ color: d.color }}>{d.value}</span>
+                {material === 'steel' ? (
+                  <div className="defect-counts" style={{ marginTop: 16 }}>
+                    {[
+                      { label: 'Total',     value: defectCount,    color: '#6366f1' },
+                      { label: 'Scratches', value: data.scratches, color: '#f97316' },
+                      { label: 'Dents',     value: data.dents,     color: '#eab308' },
+                      { label: 'Rust',      value: data.rust,      color: '#ef4444' },
+                      { label: 'Other',     value: data.other,     color: '#8b5cf6' },
+                    ].map(d => (
+                      <div key={d.label} className="defect-count-item">
+                        <span className="defect-count-label">{d.label}</span>
+                        <span className="defect-count-value" style={{ color: d.color }}>{d.value ?? 0}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                    <div className="defect-counts" style={{ marginTop: 16 }}>
+                      <div className="defect-count-item">
+                        <span className="defect-count-label">Total</span>
+                        <span className="defect-count-value" style={{ color: '#6366f1' }}>{defectCount}</span>
+                      </div>
                     </div>
-                  ))}
-                </div>
+                    {data.defects?.length > 0 && (
+                      <div style={{ marginTop: 14 }}>
+                        <table className="table" style={{ marginTop: 0 }}>
+                          <thead>
+                            <tr><th>Defect Class</th><th>Confidence</th></tr>
+                          </thead>
+                          <tbody>
+                            {data.defects.map((d, i) => (
+                              <tr key={i}>
+                                <td>{d.defect_class}</td>
+                                <td className="mono" style={{ color: 'var(--cyan)' }}>
+                                  {(d.confidence * 100).toFixed(1)}%
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
 
               <button

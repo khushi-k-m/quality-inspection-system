@@ -1,0 +1,69 @@
+INFO:     Started server process [8628]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+==================================================
+Quality Inspection Database Ready
+==================================================
+Database : D:\quality-inspection-system\database\inspection.db
+
+Current inspection columns:
+  - id
+  - inspection_id
+  - timestamp
+  - image_path
+  - scratches
+  - dents
+  - rust
+  - other
+  - total_defects
+  - status
+  - inspector
+  - quality_score
+  - severity
+  - remarks
+==================================================
+INFO:     127.0.0.1:58877 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58878 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58879 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:58880 - "GET /api/steel/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58881 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58882 - "GET /api/metal/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58883 - "GET /api/metal/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58884 - "GET /api/steel/reports HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58885 - "GET /api/metal/reports HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58886 - "GET /api/steel/analytics HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:58888 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58889 - "GET /api/steel/inspections?page=1&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58890 - "GET /api/steel/inspections/INSP20260826230018942930 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58891 - "GET /api/metal/inspections?page=1&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58892 - "GET /api/metal/inspections/MINSP20260826230019376814 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58893 - "GET /api/steel/reports/INSP20260826230018942930/download HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58894 - "GET /api/metal/inspections?page=1&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58895 - "GET /api/metal/reports/MINSP20260826230019376814/download HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58896 - "GET /api/steel/inspections/FAKEID999 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58897 - "GET /api/steel/inspections?status=PASS HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58898 - "GET /api/metal/inspections?status=FAIL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58899 - "POST /api/auth/login HTTP/1.1" 200 OK
+==================================================
+Inspection Saved Successfully
+==================================================
+Inspection ID : INSP20260826231317171627
+Status        : FAIL
+Quality Score : 70%
+Severity      : CRITICAL
+Remarks       : Rust detected. Product requires immediate inspection and corrective action.
+==================================================
+==================================================
+✅ Inspection Report Generated
+Inspection ID : INSP20260826231317171627
+Report        : D:\quality-inspection-system\output\reports\INSP20260826231317171627_inspection_report.pdf
+==================================================
+INFO:     127.0.0.1:58900 - "POST /api/steel/inspect HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53587 - "POST /api/metal/inspect HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60004 - "OPTIONS /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60004 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:54510 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:63965 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:62196 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:58086 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized

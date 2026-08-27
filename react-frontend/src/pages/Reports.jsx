@@ -1,22 +1,25 @@
 import { useEffect, useState } from 'react'
-import { getReports, downloadReport } from '../api/reports'
+import { getMaterialReports, getMaterialReportDownload } from '../api/reports'
 import Header from '../components/Header'
 import StatusBadge from '../components/StatusBadge'
 import Loading from '../components/Loading'
 import ErrorMessage from '../components/ErrorMessage'
 import { Download, FileText } from 'lucide-react'
 
+const MATERIALS = [{ key: 'steel', label: 'Steel' }, { key: 'metal', label: 'Metal' }]
+
 export default function Reports() {
-  const [reports, setReports] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [material, setMaterial] = useState('steel')
+  const [reports, setReports]   = useState([])
+  const [loading, setLoading]   = useState(true)
+  const [error, setError]       = useState('')
   const [downloading, setDownloading] = useState('')
 
   const load = async () => {
     setLoading(true)
     setError('')
     try {
-      const res = await getReports()
+      const res = await getMaterialReports(material)
       setReports(res.data)
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to load reports.')
@@ -25,11 +28,11 @@ export default function Reports() {
     }
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [material])
 
   const handleDownload = async (id) => {
     setDownloading(id)
-    try { await downloadReport(id) }
+    try { await getMaterialReportDownload(material, id) }
     catch { alert('Report not available or could not be generated.') }
     finally { setDownloading('') }
   }
@@ -38,8 +41,21 @@ export default function Reports() {
     <div className="page">
       <Header title="Reports" />
       <div className="page__body">
-        {loading && <Loading text="Loading reports..." />}
-        {error && <ErrorMessage message={error} onRetry={load} />}
+
+        <div className="inspection-mode-bar" style={{ marginBottom: 20 }}>
+          {MATERIALS.map(m => (
+            <button
+              key={m.key}
+              className={`inspection-mode-btn ${material === m.key ? 'inspection-mode-btn--active' : ''}`}
+              onClick={() => setMaterial(m.key)}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+
+        {loading && <Loading text={`Loading ${material} reports...`} />}
+        {error   && <ErrorMessage message={error} onRetry={load} />}
 
         {!loading && !error && (
           <>
@@ -51,7 +67,8 @@ export default function Reports() {
                   <thead>
                     <tr>
                       <th>Inspection ID</th>
-                      <th>Date & Time</th>
+                      <th>Date &amp; Time</th>
+                      <th>Material</th>
                       <th>Status</th>
                       <th>Quality Score</th>
                       <th>Report</th>
@@ -63,6 +80,7 @@ export default function Reports() {
                       <tr key={r.inspection_id}>
                         <td className="mono">{r.inspection_id}</td>
                         <td>{r.timestamp}</td>
+                        <td>{r.material || (material === 'steel' ? 'Steel' : 'Metal')}</td>
                         <td><StatusBadge value={r.status} /></td>
                         <td>{r.quality_score}%</td>
                         <td>

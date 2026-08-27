@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
-from backend.auth import verify_credentials, create_access_token
+from backend.auth import get_user_role, verify_credentials, create_access_token
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -17,7 +17,10 @@ def login(body: LoginRequest):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password"
         )
-    token = create_access_token({"sub": body.username, "role": "operator"})
+    token = create_access_token({
+        "sub": body.username,
+        "role": get_user_role(body.username) or "operator",
+    })
     return {
         "access_token": token,
         "token_type": "bearer",

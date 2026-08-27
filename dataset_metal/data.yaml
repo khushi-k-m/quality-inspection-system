@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 6
+names: ['inclusion', 'oil_spot', 'punching_hole', 'silk_spot', 'water_spot', 'welding_line']
+
+roboflow:
+  workspace: repository
+  project: defect-detection-metal-surface
+  version: 3
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/repository/defect-detection-metal-surface/dataset/3

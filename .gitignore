@@ -11,4 +11,4 @@ reports/
 database/*.db
 
 .idea/
-.vscode/
+.vscode/backend/.env 

@@ -7,27 +7,21 @@ import time
 import cv2
 import sys
 from pathlib import Path
-from datetime import datetime
 
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-MODEL_PATH = ROOT_DIR / "trained_model" / "steel_defect_model" / "weights" / "best.pt"
-OUTPUT_DIR = ROOT_DIR / "output" / "camera_capture"
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
-CONFIDENCE_THRESHOLD = 0.40
-IMAGE_SIZE = 320
+from backend.services.material_registry import get_material_config
 
 
 class CameraService:
     def __init__(self):
         self._lock = threading.Lock()
         self._cap = None
-        self._model = None
         self._running = False
         self._thread = None
+        self.material = "steel"
 
         # Latest state
         self.latest_frame_jpg = None       # raw JPEG bytes of annotated frame
@@ -53,15 +47,10 @@ class CameraService:
     # MODEL
     # --------------------------------------------------
 
-    def load_model(self):
-        if self._model is not None:
-            return True
-        if not MODEL_PATH.exists():
-            self.error_message = f"Model not found: {MODEL_PATH}"
-            return False
+    def load_model(self, material):
         try:
-            from ultralytics import YOLO
-            self._model = YOLO(str(MODEL_PATH))
+            from backend.services.inference_service import get_model
+            get_model(material)
             self.model_loaded = True
             return True
         except Exception as e:
@@ -72,12 +61,17 @@ class CameraService:
     # START / STOP
     # --------------------------------------------------
 
-    def start(self):
+    def start(self, material="steel"):
         with self._lock:
             if self._running:
                 return {"success": True, "message": "Already running"}
 
-            if not self.load_model():
+            try:
+                get_material_config(material)
+            except ValueError as e:
+                return {"success": False, "message": str(e)}
+
+            if not self.load_model(material):
                 return {"success": False, "message": self.error_message}
 
             cap, idx = self._open_camera()
@@ -87,6 +81,7 @@ class CameraService:
 
             self._cap = cap
             self.camera_index = idx
+            self.material = material.lower()
             self.camera_connected = True
             self._running = True
             self._thread = threading.Thread(target=self._loop, daemon=True)
@@ -133,6 +128,10 @@ class CameraService:
     # --------------------------------------------------
 
     def _loop(self):
+        from backend.services.inference_service import run_inference
+        _INFER_INTERVAL = 0.5  # run YOLO at most every 500 ms
+        last_infer = 0.0
+
         while self._running:
             if self._cap is None:
                 break
@@ -142,74 +141,40 @@ class CameraService:
                 time.sleep(0.05)
                 continue
 
+            now = time.time()
+            if now - last_infer < _INFER_INTERVAL:
+                # Encode raw frame so the stream stays live between inferences
+                import cv2 as _cv2
+                _, raw_jpg = _cv2.imencode(".jpg", frame, [_cv2.IMWRITE_JPEG_QUALITY, 75])
+                with self._lock:
+                    if self.latest_frame_jpg is None:
+                        self.latest_frame_jpg = raw_jpg.tobytes()
+                time.sleep(0.033)
+                continue
+
             t0 = time.time()
-
-            results = self._model(
-                frame,
-                imgsz=IMAGE_SIZE,
-                conf=CONFIDENCE_THRESHOLD,
-                verbose=False
-            )
-            result = results[0]
-            annotated = result.plot()
-
+            inference = run_inference(frame, material=self.material)
             elapsed = time.time() - t0
+            last_infer = time.time()
             fps = round(1 / elapsed if elapsed > 0 else 0, 1)
 
-            # Count defects
-            boxes = result.boxes
-            counts = {"scratches": 0, "dents": 0, "rust": 0, "other": 0}
-            detections = []
-
-            for box in boxes:
-                cls = int(box.cls[0])
-                conf = float(box.conf[0])
-                names = {0: "Scratches", 1: "Dents", 2: "Rust", 3: "Other"}
-                keys = {0: "scratches", 1: "dents", 2: "rust", 3: "other"}
-                if cls in keys:
-                    counts[keys[cls]] += 1
-                    detections.append({
-                        "class": names.get(cls, "Unknown"),
-                        "confidence": round(conf * 100, 1),
-                        "cls_id": cls
-                    })
-
-            total = len(boxes)
-
-            # Quality evaluation
-            if total == 0:
-                score, status, severity = 100, "PASS", "NONE"
-                remarks = "No defects detected. Product meets quality requirements."
-            elif counts["rust"] > 0:
-                score, status, severity = 70, "FAIL", "CRITICAL"
-                remarks = "Rust detected. Product requires immediate inspection."
-            elif total > 2:
-                score, status, severity = 65, "FAIL", "HIGH"
-                remarks = "Multiple defects detected. Product does not meet quality requirements."
-            else:
-                score = max(0, 100 - counts["scratches"] * 10 - counts["dents"] * 15 - counts["other"] * 10)
-                status, severity = "REWORK", "MEDIUM"
-                remarks = "Minor defects detected. Product requires rework."
-
             detection_state = {
+                "material": self.material,
                 "fps": fps,
-                "total_defects": total,
-                "scratches": counts["scratches"],
-                "dents": counts["dents"],
-                "rust": counts["rust"],
-                "other": counts["other"],
-                "status": status,
-                "quality_score": score,
-                "severity": severity,
-                "remarks": remarks,
-                "detections": detections
+                "total_defects": inference["total_defects"],
+                "status": inference["status"],
+                "quality_score": inference["quality_score"],
+                "severity": inference["severity"],
+                "remarks": inference["remarks"],
+                "detections": inference["detections"],
+                "scratches": inference.get("scratches", 0),
+                "dents": inference.get("dents", 0),
+                "rust": inference.get("rust", 0),
+                "other": inference.get("other", 0),
             }
 
-            # Encode frame as JPEG
-            _, jpg = cv2.imencode(".jpg", annotated, [cv2.IMWRITE_JPEG_QUALITY, 80])
-
             with self._lock:
-                self.latest_frame_jpg = jpg.tobytes()
+                self.latest_frame_jpg = inference["annotated_jpg"]
                 self.latest_detection = detection_state
 
     # --------------------------------------------------
@@ -223,62 +188,16 @@ class CameraService:
             detection = dict(self.latest_detection)
             frame_jpg = self.latest_frame_jpg
 
-        now = datetime.now()
-        timestamp = now.strftime("%d-%m-%Y %H:%M:%S")
-        inspection_id = now.strftime("INSP%Y%m%d%H%M%S%f")
-        status = detection["status"]
-
-        filename = OUTPUT_DIR / f"{inspection_id}_{status}.jpg"
-
-        # Write JPEG bytes directly
-        with open(str(filename), "wb") as f:
-            f.write(frame_jpg)
-
-        # Save to database
         try:
-            from quality.inspector import save_inspection
-            save_inspection(
-                inspection_id=inspection_id,
-                timestamp=timestamp,
-                image_path=str(filename),
-                scratches=detection["scratches"],
-                dents=detection["dents"],
-                rust=detection["rust"],
-                other=detection["other"],
-                total_defects=detection["total_defects"],
-                status=status,
-                quality_score=detection["quality_score"],
-                severity=detection["severity"],
-                remarks=detection["remarks"],
-                inspector="AI System"
+            from backend.services.inference_service import save_inspection_record
+            persisted = save_inspection_record(
+                {**detection, "annotated_jpg": frame_jpg},
+                inspector="Camera",
+                material=self.material,
             )
         except Exception as e:
             return None, f"Database save failed: {e}"
-
-        # Generate PDF report
-        report_path = None
-        try:
-            from reports.generate_report import generate_report
-            report_path = generate_report(inspection_id)
-        except Exception:
-            pass
-
-        return {
-            "inspection_id": inspection_id,
-            "timestamp": timestamp,
-            "status": status,
-            "quality_score": detection["quality_score"],
-            "severity": detection["severity"],
-            "remarks": detection["remarks"],
-            "total_defects": detection["total_defects"],
-            "scratches": detection["scratches"],
-            "dents": detection["dents"],
-            "rust": detection["rust"],
-            "other": detection["other"],
-            "detections": detection["detections"],
-            "image_url": f"/api/images/{inspection_id}",
-            "report_available": report_path is not None
-        }, None
+        return persisted, None
 
     # --------------------------------------------------
     # STATUS

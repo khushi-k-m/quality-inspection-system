@@ -1,5 +1,8 @@
 """
-Shared YOLO inference logic used by both camera capture and image upload.
+Inference Service
+=================
+Material-aware YOLO inference.  One cached model per material.
+Used by: image upload endpoint, camera service, future endpoints.
 """
 import cv2
 import numpy as np
@@ -11,135 +14,191 @@ ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-MODEL_PATH = ROOT_DIR / "trained_model" / "steel_defect_model" / "weights" / "best.pt"
-OUTPUT_DIR = ROOT_DIR / "output" / "camera_capture"
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+from backend.services.material_registry import get_material_config
 
-CONFIDENCE_THRESHOLD = 0.40
-IMAGE_SIZE = 320
-
-CLASS_NAMES = {0: "Scratches", 1: "Dents", 2: "Rust", 3: "Other"}
-CLASS_KEYS  = {0: "scratches", 1: "dents",  2: "rust", 3: "other"}
-
-_model = None
+# Per-material model cache  {material_key: YOLO instance}
+_model_cache: dict = {}
 
 
-def get_model():
-    global _model
-    if _model is not None:
-        return _model
-    if not MODEL_PATH.exists():
-        raise RuntimeError(f"Model not found: {MODEL_PATH}")
+def get_model(material: str):
+    """Return (and cache) the YOLO model for *material*."""
+    key = material.lower()
+    if key in _model_cache:
+        return _model_cache[key]
+
+    cfg = get_material_config(key)
+    model_path = cfg["model_path"]
+
+    if not model_path.exists():
+        raise RuntimeError(
+            f"Model not found for material '{key}': {model_path}"
+        )
+
     from ultralytics import YOLO
-    _model = YOLO(str(MODEL_PATH))
-    return _model
+    model = YOLO(str(model_path))
+    _model_cache[key] = model
+    return model
 
 
-def run_inference(frame: np.ndarray) -> dict:
+def run_inference(frame: np.ndarray, material: str = "steel") -> dict:
     """
-    Run YOLO on a BGR numpy frame.
-    Returns detection dict with counts, detections list, quality evaluation,
-    and annotated JPEG bytes.
+    Run YOLO on a BGR numpy frame for the given material.
+
+    Returns a dict with:
+        total_defects, detections, quality_score, status,
+        severity, remarks, annotated_jpg, material
+    Plus material-specific defect counts (steel: scratches/dents/rust/other).
     """
-    model = get_model()
-    results = model(frame, imgsz=IMAGE_SIZE, conf=CONFIDENCE_THRESHOLD, verbose=False)
-    result = results[0]
+    key = material.lower()
+    cfg = get_material_config(key)
+    model = get_model(key)
+
+    results = model(
+        frame,
+        imgsz=cfg["imgsz"],
+        conf=cfg["confidence"],
+        verbose=False,
+    )
+    result    = results[0]
     annotated = result.plot()
 
-    boxes = result.boxes
-    counts = {"scratches": 0, "dents": 0, "rust": 0, "other": 0}
+    boxes      = result.boxes
     detections = []
 
     for box in boxes:
-        cls  = int(box.cls[0])
-        conf = float(box.conf[0])
-        if cls in CLASS_KEYS:
-            counts[CLASS_KEYS[cls]] += 1
-            detections.append({
-                "class":      CLASS_NAMES.get(cls, "Unknown"),
-                "confidence": round(conf * 100, 1),
-                "cls_id":     cls,
-            })
+        cls_id = int(box.cls[0])
+        conf   = float(box.conf[0])
+        coords = box.xyxy[0].tolist()
+        detections.append({
+            "class":      model.names.get(cls_id, f"class_{cls_id}"),
+            "class_name": model.names.get(cls_id, f"class_{cls_id}"),
+            "confidence": round(conf * 100, 1),
+            "cls_id":     cls_id,
+            "x1": int(coords[0]),
+            "y1": int(coords[1]),
+            "x2": int(coords[2]),
+            "y2": int(coords[3]),
+        })
 
-    total = len(boxes)
+    total = len(detections)
 
-    # Quality evaluation — same logic as camera_service
-    from quality.evaluator import evaluate_quality
-    evaluation = evaluate_quality(
-        scratches=counts["scratches"],
-        dents=counts["dents"],
-        rust=counts["rust"],
-        other=counts["other"],
-    )
+    # ── Quality evaluation ────────────────────────────────────────────
+    if key == "steel":
+        from quality.evaluator import evaluate_quality
+        # Steel model class indices: 0=Scratches 1=Dents 2=Rust 3=Other
+        # The model may store names as 'class-1'..'class-4' or the real names.
+        # Map by index to be robust against either naming convention.
+        _STEEL_IDX = {0: "scratches", 1: "dents", 2: "rust", 3: "other"}
+        _STEEL_DISPLAY = {0: "Scratches", 1: "Dents", 2: "Rust", 3: "Other"}
+        counts = {"scratches": 0, "dents": 0, "rust": 0, "other": 0}
+        for d in detections:
+            bucket = _STEEL_IDX.get(d["cls_id"], "other")
+            counts[bucket] += 1
+            # Override display name so frontend shows proper label
+            d["class"] = _STEEL_DISPLAY.get(d["cls_id"], d["class"])
+            d["class_name"] = d["class"]
+        evaluation = evaluate_quality(**counts)
+        extra = counts
+    else:
+        from metal.evaluator import MetalEvaluator
+        evaluation = MetalEvaluator().evaluate(detections)
+        extra = {"defect_count": total}
 
     _, jpg = cv2.imencode(".jpg", annotated, [cv2.IMWRITE_JPEG_QUALITY, 85])
 
     return {
+        "material":      key,
         "total_defects": total,
-        "scratches":     counts["scratches"],
-        "dents":         counts["dents"],
-        "rust":          counts["rust"],
-        "other":         counts["other"],
+        "detections":    detections,
         "quality_score": evaluation["quality_score"],
         "status":        evaluation["status"],
         "severity":      evaluation["severity"],
         "remarks":       evaluation["remarks"],
-        "detections":    detections,
         "annotated_jpg": jpg.tobytes(),
+        **extra,
     }
 
 
-def save_inspection_record(detection: dict, inspector: str = "AI System") -> dict:
+def save_inspection_record(
+    detection: dict,
+    inspector: str = "AI System",
+    material:  str = "steel",
+) -> dict:
     """
-    Persist an inspection result to the database and generate a PDF report.
-    Returns the full inspection result dict including image_url and report_available.
+    Persist an inspection to the correct database and generate a PDF report.
+    Returns the full result dict including image_url and report_available.
     """
-    now = datetime.now()
-    timestamp   = now.strftime("%d-%m-%Y %H:%M:%S")
-    inspection_id = now.strftime("INSP%Y%m%d%H%M%S%f")
-    status = detection["status"]
+    key = material.lower()
+    cfg = get_material_config(key)
 
-    filename = OUTPUT_DIR / f"{inspection_id}_{status}.jpg"
+    now           = datetime.now()
+    timestamp     = now.strftime("%d-%m-%Y %H:%M:%S")
+    inspection_id = now.strftime(f"{cfg['id_prefix']}%Y%m%d%H%M%S%f")
+    status        = detection["status"]
+
+    out_dir  = cfg["output_dir"]
+    filename = out_dir / f"{inspection_id}_{status}.jpg"
     with open(str(filename), "wb") as f:
         f.write(detection["annotated_jpg"])
 
-    from quality.inspector import save_inspection
-    save_inspection(
-        inspection_id=inspection_id,
-        timestamp=timestamp,
-        image_path=str(filename),
-        scratches=detection["scratches"],
-        dents=detection["dents"],
-        rust=detection["rust"],
-        other=detection["other"],
-        total_defects=detection["total_defects"],
-        status=status,
-        quality_score=detection["quality_score"],
-        severity=detection["severity"],
-        remarks=detection["remarks"],
-        inspector=inspector,
-    )
-
     report_path = None
-    try:
-        from reports.generate_report import generate_report
-        report_path = generate_report(inspection_id)
-    except Exception:
-        pass
+
+    if key == "steel":
+        from quality.inspector import save_inspection
+        save_inspection(
+            inspection_id = inspection_id,
+            timestamp     = timestamp,
+            image_path    = str(filename),
+            scratches     = detection.get("scratches", 0),
+            dents         = detection.get("dents", 0),
+            rust          = detection.get("rust", 0),
+            other         = detection.get("other", 0),
+            total_defects = detection["total_defects"],
+            status        = status,
+            quality_score = detection["quality_score"],
+            severity      = detection["severity"],
+            remarks       = detection["remarks"],
+            inspector     = inspector,
+        )
+        try:
+            from reports.generate_report import generate_report
+            report_path = generate_report(inspection_id)
+        except Exception:
+            pass
+        image_url = f"/api/images/steel/{inspection_id}"
+
+    else:  # metal (and future materials)
+        from metal.database import save_inspection as metal_save
+        metal_save(
+            inspection_id = inspection_id,
+            timestamp     = timestamp,
+            image_path    = str(filename),
+            defect_count  = detection["total_defects"],
+            quality_score = detection["quality_score"],
+            severity      = detection["severity"],
+            status        = status,
+            remarks       = detection["remarks"],
+            defects       = detection["detections"],
+            inspector     = inspector,
+            material      = cfg["label"],
+        )
+        try:
+            from reports.metal_report import generate_metal_report
+            report_path = generate_metal_report(inspection_id)
+        except Exception:
+            pass
+        image_url = f"/api/images/metal/{inspection_id}"
 
     return {
-        "inspection_id":  inspection_id,
-        "timestamp":      timestamp,
-        "status":         status,
-        "quality_score":  detection["quality_score"],
-        "severity":       detection["severity"],
-        "remarks":        detection["remarks"],
-        "total_defects":  detection["total_defects"],
-        "scratches":      detection["scratches"],
-        "dents":          detection["dents"],
-        "rust":           detection["rust"],
-        "other":          detection["other"],
-        "detections":     detection["detections"],
-        "image_url":      f"/api/images/{inspection_id}",
+        "inspection_id":    inspection_id,
+        "material":         key,
+        "timestamp":        timestamp,
+        "status":           status,
+        "quality_score":    detection["quality_score"],
+        "severity":         detection["severity"],
+        "remarks":          detection["remarks"],
+        "total_defects":    detection["total_defects"],
+        "detections":       detection["detections"],
+        "image_url":        image_url,
         "report_available": report_path is not None,
     }

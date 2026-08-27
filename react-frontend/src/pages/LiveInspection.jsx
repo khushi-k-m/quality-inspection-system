@@ -4,8 +4,8 @@ import StatusBadge from '../components/StatusBadge'
 import ErrorMessage from '../components/ErrorMessage'
 import apiClient from '../api/apiClient'
 import { getCameraStatus, startCamera, stopCamera, captureInspection, getStreamUrl } from '../api/camera'
-import { uploadInspection } from '../api/inspections'
-import { downloadReport } from '../api/reports'
+import { uploadMaterialInspection } from '../api/inspections'
+import { getMaterialReportDownload, downloadReport } from '../api/reports'
 import { Camera, CameraOff, Save, CheckCircle, Upload, ImageIcon, X, RefreshCw, Download } from 'lucide-react'
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png']
@@ -101,6 +101,7 @@ function InspectionResult({ result, onDownload, onNew, dlLoading }) {
 
 // ─── Live Camera mode ────────────────────────────────────────────────────────
 function LiveCameraMode() {
+  const [material, setMaterial] = useState('steel')
   const [detection, setDetection] = useState(null)
   const [running, setRunning] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -136,7 +137,7 @@ function LiveCameraMode() {
   const handleStart = async () => {
     setLoading(true); setError('')
     try {
-      await startCamera()
+      await startCamera(material)
       setRunning(true)
       await fetchStatus()
     } catch (err) {
@@ -168,7 +169,7 @@ function LiveCameraMode() {
   const handleDownload = async () => {
     if (!lastSaved) return
     setDlLoading(true)
-    try { await downloadReport(lastSaved.inspection_id) }
+    try { await getMaterialReportDownload(lastSaved.material || material, lastSaved.inspection_id) }
     catch { alert('Report not available.') }
     finally { setDlLoading(false) }
   }
@@ -182,6 +183,19 @@ function LiveCameraMode() {
             <Camera size={18} /> Live Camera Feed
           </span>
           {running && <span className="live-badge">● LIVE</span>}
+        </div>
+
+        <div className="inspection-mode-bar" style={{ margin: '12px 0' }}>
+          {['steel', 'metal'].map(option => (
+            <button
+              key={option}
+              className={`inspection-mode-btn ${material === option ? 'inspection-mode-btn--active' : ''}`}
+              onClick={() => setMaterial(option)}
+              disabled={running}
+            >
+              {option[0].toUpperCase() + option.slice(1)}
+            </button>
+          ))}
         </div>
 
         <div className="live-camera-view">
@@ -326,8 +340,26 @@ function LiveCameraMode() {
   )
 }
 
+const MATERIAL_DEFECTS = {
+  steel: [
+    { label: 'Scratches', color: '#f97316' },
+    { label: 'Dents',     color: '#eab308' },
+    { label: 'Rust',      color: '#ef4444' },
+    { label: 'Other',     color: '#8b5cf6' },
+  ],
+  metal: [
+    { label: 'Water Spot',    color: '#06b6d4' },
+    { label: 'Oil Spot',      color: '#f97316' },
+    { label: 'Silk Spot',     color: '#eab308' },
+    { label: 'Welding Line',  color: '#ef4444' },
+    { label: 'Inclusion',     color: '#8b5cf6' },
+    { label: 'Punching Hole', color: '#f43f5e' },
+  ],
+}
+
 // ─── Upload Image mode ───────────────────────────────────────────────────────
 function UploadMode() {
+  const [material, setMaterial] = useState('steel')
   const [file, setFile] = useState(null)
   const [preview, setPreview] = useState(null)
   const [detecting, setDetecting] = useState(false)
@@ -377,7 +409,7 @@ function UploadMode() {
     setDetecting(true)
     setError('')
     try {
-      const res = await uploadInspection(file)
+      const res = await uploadMaterialInspection(material, file)
       setResult(res.data)
     } catch (err) {
       setError(err.response?.data?.detail || 'Detection failed. Please try again.')
@@ -397,9 +429,18 @@ function UploadMode() {
   const handleDownload = async () => {
     if (!result) return
     setDlLoading(true)
-    try { await downloadReport(result.inspection_id) }
+    try { await getMaterialReportDownload(result.material || material, result.inspection_id) }
     catch { alert('Report not available.') }
     finally { setDlLoading(false) }
+  }
+
+  const handleMaterialChange = (m) => {
+    setMaterial(m)
+    setFile(null)
+    setPreview(null)
+    setResult(null)
+    setError('')
+    if (inputRef.current) inputRef.current.value = ''
   }
 
   // ── After detection: show result ──
@@ -420,6 +461,19 @@ function UploadMode() {
   return (
     <div className="upload-wrap">
       <div className="upload-panel">
+        <div className="inspection-mode-bar" style={{ marginBottom: 14 }}>
+          {[{ key: 'steel', label: 'Steel' }, { key: 'metal', label: 'Metal' }].map(m => (
+            <button
+              key={m.key}
+              className={`inspection-mode-btn ${material === m.key ? 'inspection-mode-btn--active' : ''}`}
+              onClick={() => handleMaterialChange(m.key)}
+              disabled={detecting}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+
         {!file ? (
           // Drop zone
           <div
@@ -431,7 +485,7 @@ function UploadMode() {
             onClick={() => inputRef.current?.click()}
           >
             <ImageIcon size={48} style={{ color: 'var(--muted)', marginBottom: 16 }} />
-            <p className="upload-drop__title">Upload Steel / Fabric Image</p>
+            <p className="upload-drop__title">Upload {material === 'steel' ? 'Steel' : 'Metal'} Surface Image</p>
             <p className="upload-drop__sub">Drag &amp; drop here, or click to browse</p>
             <p className="upload-drop__hint">Supported: JPG, JPEG, PNG · Max {MAX_MB} MB</p>
             <button className="btn btn--primary" style={{ marginTop: 20 }} type="button">
@@ -503,12 +557,7 @@ function UploadMode() {
         <div className="live-section">
           <h3 className="live-section-title">Detectable Defects</h3>
           <div className="detection-list" style={{ marginTop: 14 }}>
-            {[
-              { label: 'Scratches', color: '#f97316' },
-              { label: 'Dents',     color: '#eab308' },
-              { label: 'Rust',      color: '#ef4444' },
-              { label: 'Other',     color: '#8b5cf6' },
-            ].map(d => (
+            {(MATERIAL_DEFECTS[material] || []).map(d => (
               <div key={d.label} className="detection-tag">
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: d.color, flexShrink: 0 }} />
                 <span className="detection-tag__class">{d.label}</span>
