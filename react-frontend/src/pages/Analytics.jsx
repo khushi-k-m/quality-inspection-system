@@ -11,8 +11,11 @@ import {
 import { ClipboardCheck, CheckCircle, XCircle, AlertTriangle, Star } from 'lucide-react'
 
 const MATERIALS = [
-  { key: 'steel', label: 'Steel' },
-  { key: 'metal', label: 'Metal' },
+  { key: 'steel',   label: 'Steel' },
+  { key: 'metal',   label: 'Metal' },
+  { key: 'fabric',  label: 'Fabric' },
+  { key: 'pcb',     label: 'PCB' },
+  { key: 'welding', label: 'Welding' },
 ]
 
 const STATUS_COLORS   = { PASS: '#22c55e', REWORK: '#f97316', FAIL: '#ef4444' }

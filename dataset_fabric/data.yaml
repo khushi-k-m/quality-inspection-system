@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 3
+names: ['color bleeding', 'crease', 'hole']
+
+roboflow:
+  workspace: fabric-defects-dataset
+  project: fabric-defect-detection-ipvbu
+  version: 18
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/fabric-defects-dataset/fabric-defect-detection-ipvbu/dataset/18

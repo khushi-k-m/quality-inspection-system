@@ -77,7 +77,7 @@ class CameraService:
             cap, idx = self._open_camera()
             if cap is None:
                 self.camera_connected = False
-                return {"success": False, "message": "No camera found"}
+                return {"success": False, "message": self.error_message or "No camera found"}
 
             self._cap = cap
             self.camera_index = idx
@@ -107,20 +107,32 @@ class CameraService:
     # --------------------------------------------------
 
     def _open_camera(self):
-        for i in range(5):
-            test = cv2.VideoCapture(i, cv2.CAP_DSHOW)
-            if not test.isOpened():
+        backends = [
+            ("DirectShow", cv2.CAP_DSHOW),
+            ("Media Foundation", cv2.CAP_MSMF),
+            ("Default", cv2.CAP_ANY),
+        ]
+        attempts = []
+
+        for backend_name, backend in backends:
+            for i in range(5):
+                test = cv2.VideoCapture(i, backend)
+                if not test.isOpened():
+                    test.release()
+                    attempts.append(f"{backend_name}[{i}]: unavailable")
+                    continue
+                time.sleep(0.5)
+                test.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+                test.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+                for _ in range(5):
+                    ret, frame = test.read()
+                    if ret and frame is not None:
+                        return test, i
+                    time.sleep(0.1)
                 test.release()
-                continue
-            time.sleep(0.5)
-            test.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-            test.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-            for _ in range(5):
-                ret, frame = test.read()
-                if ret and frame is not None:
-                    return test, i
-                time.sleep(0.1)
-            test.release()
+                attempts.append(f"{backend_name}[{i}]: no frame")
+
+        self.error_message = "No usable camera found. Tried " + ", ".join(attempts)
         return None, -1
 
     # --------------------------------------------------
@@ -128,7 +140,7 @@ class CameraService:
     # --------------------------------------------------
 
     def _loop(self):
-        from backend.services.inference_service import run_inference
+        from backend.services.material_validation_service import validate_and_run_inference
         _INFER_INTERVAL = 0.5  # run YOLO at most every 500 ms
         last_infer = 0.0
 
@@ -143,7 +155,6 @@ class CameraService:
 
             now = time.time()
             if now - last_infer < _INFER_INTERVAL:
-                # Encode raw frame so the stream stays live between inferences
                 import cv2 as _cv2
                 _, raw_jpg = _cv2.imencode(".jpg", frame, [_cv2.IMWRITE_JPEG_QUALITY, 75])
                 with self._lock:
@@ -153,11 +164,38 @@ class CameraService:
                 continue
 
             t0 = time.time()
-            inference = run_inference(frame, material=self.material)
+            validation = validate_and_run_inference(frame, material=self.material)
             elapsed = time.time() - t0
             last_infer = time.time()
             fps = round(1 / elapsed if elapsed > 0 else 0, 1)
 
+            if not validation.get("inspection_valid", False):
+                detection_state = {
+                    "material": self.material,
+                    "fps": fps,
+                    "total_defects": 0,
+                    "status": validation.get("status", "INVALID_IMAGE"),
+                    "quality_score": 0,
+                    "severity": "NONE",
+                    "remarks": validation.get("message", "Inspection rejected."),
+                    "detections": [],
+                    "scratches": 0,
+                    "dents": 0,
+                    "rust": 0,
+                    "other": 0,
+                    "selected_material": validation.get("selected_material"),
+                    "detected_material": validation.get("detected_material"),
+                    "material_valid": validation.get("material_valid", False),
+                    "product_detected": validation.get("product_detected", False),
+                    "reason": validation.get("reason"),
+                }
+                encoded = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 75])[1]
+                with self._lock:
+                    self.latest_frame_jpg = encoded.tobytes()
+                    self.latest_detection = detection_state
+                continue
+
+            inference = validation
             detection_state = {
                 "material": self.material,
                 "fps": fps,
@@ -187,6 +225,10 @@ class CameraService:
                 return None, "Camera not running or no frame available"
             detection = dict(self.latest_detection)
             frame_jpg = self.latest_frame_jpg
+
+        status = detection.get("status")
+        if status in {"INVALID_IMAGE", "INVALID_MATERIAL", "MATERIAL_UNVERIFIED"}:
+            return None, detection.get("remarks") or "Inspection rejected because the image failed validation."
 
         try:
             from backend.services.inference_service import save_inspection_record

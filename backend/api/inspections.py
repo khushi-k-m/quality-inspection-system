@@ -90,22 +90,20 @@ async def upload_inspection(
     if frame is None:
         raise HTTPException(status_code=422, detail="Could not decode image. Ensure it is a valid JPG or PNG.")
 
-    # Run YOLO inference
+    # Run the centralized validation gate before accepting a result.
     try:
-        from backend.services.inference_service import run_inference, save_inspection_record
-        detection = run_inference(frame)
+        from backend.services.material_validation_service import validate_and_run_inference
+        result = validate_and_run_inference(frame, material="steel")
+        if not result.get("inspection_valid", False):
+            return result
+        from backend.services.inference_service import save_inspection_record
+        saved = save_inspection_record(result, inspector="Upload", material="steel")
     except RuntimeError as e:
         raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Inference failed: {e}")
 
-    # Save to database + generate report
-    try:
-        result = save_inspection_record(detection, inspector="Upload")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to save inspection: {e}")
-
-    return result
+    return saved
 
 
 @router.get("/{inspection_id}")

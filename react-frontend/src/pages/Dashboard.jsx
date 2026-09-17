@@ -13,8 +13,11 @@ import {
 } from 'lucide-react'
 
 const MATERIALS = [
-  { key: 'steel', label: 'Steel' },
-  { key: 'metal', label: 'Metal' },
+  { key: 'steel',   label: 'Steel' },
+  { key: 'metal',   label: 'Metal' },
+  { key: 'fabric',  label: 'Fabric' },
+  { key: 'pcb',     label: 'PCB' },
+  { key: 'welding', label: 'Welding' },
 ]
 
 export default function Dashboard() {
@@ -43,8 +46,6 @@ export default function Dashboard() {
   }
 
   useEffect(() => { load() }, [material])
-
-  const defectKey = material === 'steel' ? 'total_defects' : 'total_defects'
 
   return (
     <div className="page">
@@ -82,7 +83,7 @@ export default function Dashboard() {
 
             <div className="section">
               <div className="section__header">
-                <h2 className="section__title">Recent {material === 'steel' ? 'Steel' : 'Metal'} Inspections</h2>
+                <h2 className="section__title">Recent {MATERIALS.find(m => m.key === material)?.label} Inspections</h2>
                 <button
                   className="btn btn--ghost btn--sm"
                   onClick={() => navigate(`/inspection-history?material=${material}`)}

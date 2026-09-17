@@ -6,7 +6,7 @@ import apiClient from '../api/apiClient'
 import { getCameraStatus, startCamera, stopCamera, captureInspection, getStreamUrl } from '../api/camera'
 import { uploadMaterialInspection } from '../api/inspections'
 import { getMaterialReportDownload, downloadReport } from '../api/reports'
-import { Camera, CameraOff, Save, CheckCircle, Upload, ImageIcon, X, RefreshCw, Download } from 'lucide-react'
+import { Camera, CameraOff, Save, CheckCircle, Upload, ImageIcon, X, RefreshCw, Download, AlertTriangle } from 'lucide-react'
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png']
 const MAX_MB = 20
@@ -24,6 +24,43 @@ function InspectionResult({ result, onDownload, onNew, dlLoading }) {
   }, [result?.image_url])
 
   if (!result) return null
+
+  if (result.status === 'INVALID_IMAGE' || result.status === 'INVALID_MATERIAL' || result.status === 'MATERIAL_UNVERIFIED') {
+    const isInvalidImage = result.status === 'INVALID_IMAGE'
+    const isUnverified = result.status === 'MATERIAL_UNVERIFIED'
+
+    return (
+      <div className="upload-result">
+        <div className="upload-result__header" style={{ color: isInvalidImage ? 'var(--amber)' : isUnverified ? 'var(--amber)' : 'var(--red)' }}>
+          {isInvalidImage ? <ImageIcon size={18} color="var(--amber)" /> : isUnverified ? <AlertTriangle size={18} color="var(--amber)" /> : <X size={18} color="var(--red)" />}
+          <span>
+            {isInvalidImage ? '⚠️ No Valid Product Detected' : isUnverified ? '⚠️ Material Could Not Be Verified' : '❌ Invalid Material'}
+          </span>
+        </div>
+
+        <div className="detection-grid" style={{ marginTop: 0 }}>
+          <div className="detection-item">
+            <span className="detection-label">Selected</span>
+            <span className="detection-value">{result.selected_material ? result.selected_material.charAt(0).toUpperCase() + result.selected_material.slice(1) : 'Unknown'}</span>
+          </div>
+          <div className="detection-item">
+            <span className="detection-label">Detected</span>
+            <span className="detection-value">{result.detected_material ? result.detected_material.charAt(0).toUpperCase() + result.detected_material.slice(1) : 'None'}</span>
+          </div>
+          <div className="detection-item detection-item--full">
+            <span className="detection-label">Message</span>
+            <span className="detection-remarks">{result.message}</span>
+          </div>
+        </div>
+
+        <div className="live-controls" style={{ marginTop: 18 }}>
+          <button className="btn btn--ghost" onClick={onNew}>
+            <RefreshCw size={15} /> Try Again
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="upload-result">
@@ -186,7 +223,7 @@ function LiveCameraMode() {
         </div>
 
         <div className="inspection-mode-bar" style={{ margin: '12px 0' }}>
-          {['steel', 'metal'].map(option => (
+          {['steel', 'metal', 'fabric', 'pcb', 'welding'].map(option => (
             <button
               key={option}
               className={`inspection-mode-btn ${material === option ? 'inspection-mode-btn--active' : ''}`}
@@ -355,7 +392,32 @@ const MATERIAL_DEFECTS = {
     { label: 'Inclusion',     color: '#8b5cf6' },
     { label: 'Punching Hole', color: '#f43f5e' },
   ],
+  fabric: [
+    { label: 'Color Bleeding', color: '#ec4899' },
+    { label: 'Crease',         color: '#f97316' },
+    { label: 'Hole',           color: '#ef4444' },
+  ],
+  pcb: [
+    { label: 'Missing Hole',     color: '#6366f1' },
+    { label: 'Mouse Bite',       color: '#f97316' },
+    { label: 'Open Circuit',     color: '#ef4444' },
+    { label: 'Short',            color: '#dc2626' },
+    { label: 'Spur',             color: '#eab308' },
+    { label: 'Spurious Copper',  color: '#8b5cf6' },
+  ],
+  welding: [
+    { label: 'Bad Weld',  color: '#ef4444' },
+    { label: 'Good Weld', color: '#22c55e' },
+  ],
 }
+
+const UPLOAD_MATERIALS = [
+  { key: 'steel',   label: 'Steel' },
+  { key: 'metal',   label: 'Metal' },
+  { key: 'fabric',  label: 'Fabric' },
+  { key: 'pcb',     label: 'PCB' },
+  { key: 'welding', label: 'Welding' },
+]
 
 // ─── Upload Image mode ───────────────────────────────────────────────────────
 function UploadMode() {
@@ -462,7 +524,7 @@ function UploadMode() {
     <div className="upload-wrap">
       <div className="upload-panel">
         <div className="inspection-mode-bar" style={{ marginBottom: 14 }}>
-          {[{ key: 'steel', label: 'Steel' }, { key: 'metal', label: 'Metal' }].map(m => (
+          {UPLOAD_MATERIALS.map(m => (
             <button
               key={m.key}
               className={`inspection-mode-btn ${material === m.key ? 'inspection-mode-btn--active' : ''}`}
@@ -485,7 +547,7 @@ function UploadMode() {
             onClick={() => inputRef.current?.click()}
           >
             <ImageIcon size={48} style={{ color: 'var(--muted)', marginBottom: 16 }} />
-            <p className="upload-drop__title">Upload {material === 'steel' ? 'Steel' : 'Metal'} Surface Image</p>
+            <p className="upload-drop__title">Upload {UPLOAD_MATERIALS.find(m => m.key === material)?.label} Surface Image</p>
             <p className="upload-drop__sub">Drag &amp; drop here, or click to browse</p>
             <p className="upload-drop__hint">Supported: JPG, JPEG, PNG · Max {MAX_MB} MB</p>
             <button className="btn btn--primary" style={{ marginTop: 20 }} type="button">
@@ -537,7 +599,7 @@ function UploadMode() {
           <h3 className="live-section-title">How It Works</h3>
           <div style={{ display: 'grid', gap: 14, marginTop: 16 }}>
             {[
-              ['1', 'Select a JPG or PNG image of the steel/fabric surface'],
+              ['1', 'Select a JPG or PNG image of the surface to inspect'],
               ['2', 'Click Detect Defects to send the image to the AI backend'],
               ['3', 'YOLOv8 model analyzes the image for surface defects'],
               ['4', 'View the annotated result with bounding boxes'],

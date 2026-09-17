@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { Eye, EyeOff, Shield, Cpu, Activity, Zap } from 'lucide-react'
 
@@ -33,7 +33,7 @@ export default function Login() {
         <div className="login-left__content">
           <div className="login-brand">
             <Shield size={52} className="login-brand__icon" />
-            <h1 className="login-brand__name">SteelVision AI</h1>
+            <h1 className="login-brand__name">InspectAI </h1>
             <p className="login-brand__tagline">
               AI-Powered Industrial Quality Inspection System
             </p>
@@ -81,11 +81,11 @@ export default function Login() {
 
           <form className="login-form" onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label">Username</label>
+              <label className="form-label">Username or Email</label>
               <input
                 className="form-input"
                 type="text"
-                placeholder="Enter username"
+                placeholder="Enter username or email"
                 value={form.username}
                 onChange={e => setForm({ ...form, username: e.target.value })}
                 required
@@ -127,10 +127,15 @@ export default function Login() {
             >
               {loading ? <><div className="spinner spinner--sm" /> Signing in...</> : 'Sign In'}
             </button>
+
+            <p style={{ margin: 0, textAlign: 'center', fontSize: 12 }}>
+              <Link to="/forgot-password" style={{ color: 'var(--muted)' }}>Forgot Password?</Link>
+            </p>
           </form>
 
           <p className="login-card__footer">
-            SteelVision AI · Industrial Quality Inspection
+            Don&apos;t have an account?{' '}
+            <Link to="/register" style={{ color: 'var(--cyan)' }}>Create Account</Link>
           </p>
         </div>
       </div>

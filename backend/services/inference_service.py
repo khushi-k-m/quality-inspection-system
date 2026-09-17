@@ -20,6 +20,66 @@ from backend.services.material_registry import get_material_config
 _model_cache: dict = {}
 
 
+# Penalty weights for generic materials (fabric, pcb, welding)
+# good_weld is not a defect — zero penalty
+_GENERIC_PENALTIES = {
+    # fabric
+    "color_bleeding": 20, "crease": 15, "hole": 30,
+    # pcb
+    "missing_hole": 25, "mouse_bite": 20, "open_circuit": 30,
+    "short": 30, "spur": 15, "spurious_copper": 20,
+    # welding
+    "bad_weld": 35, "good_weld": 0,
+}
+_GENERIC_CRITICAL = {"hole", "open_circuit", "short", "bad_weld"}
+
+
+def _generic_evaluate(detections: list, material: str) -> dict:
+    """Generic quality evaluator for fabric, pcb, welding."""
+    # Filter out non-defect classes (good_weld)
+    real_defects = [d for d in detections if d.get("class_name", "") != "good_weld"]
+    defect_count = len(real_defects)
+
+    if defect_count == 0:
+        return {
+            "quality_score": 100, "severity": "NONE", "status": "PASS",
+            "defect_count": 0,
+            "remarks": f"No defects detected. {material.capitalize()} meets quality requirements.",
+        }
+
+    score        = 100
+    has_critical = False
+    for d in real_defects:
+        name    = d.get("class_name", "").lower()
+        penalty = _GENERIC_PENALTIES.get(name, 15)
+        score  -= penalty
+        if name in _GENERIC_CRITICAL:
+            has_critical = True
+    score = max(0, min(100, score))
+
+    if has_critical or score < 55:
+        status, severity = "FAIL", "HIGH"
+    elif score < 80:
+        status, severity = "REWORK", "MEDIUM"
+    else:
+        status, severity = "PASS", "LOW"
+
+    counts = {}
+    for d in real_defects:
+        n = d.get("class_name", "unknown")
+        counts[n] = counts.get(n, 0) + 1
+    summary = ", ".join(f"{v}x {k}" for k, v in counts.items())
+
+    remarks = (
+        f"Defects detected: {summary}. "
+        + ("Immediate corrective action required." if status == "FAIL"
+           else "Rework or manual inspection recommended." if status == "REWORK"
+           else "Minor issues noted.")
+    )
+    return {"quality_score": score, "severity": severity, "status": status,
+            "defect_count": defect_count, "remarks": remarks}
+
+
 def get_model(material: str):
     """Return (and cache) the YOLO model for *material*."""
     key = material.lower()
@@ -82,26 +142,31 @@ def run_inference(frame: np.ndarray, material: str = "steel") -> dict:
 
     total = len(detections)
 
+    # ── Override class names from registry if model uses numeric names ─
+    if "class_names" in cfg:
+        for d in detections:
+            d["class"]      = cfg["class_names"].get(d["cls_id"], d["class"])
+            d["class_name"] = d["class"]
+
     # ── Quality evaluation ────────────────────────────────────────────
     if key == "steel":
         from quality.evaluator import evaluate_quality
-        # Steel model class indices: 0=Scratches 1=Dents 2=Rust 3=Other
-        # The model may store names as 'class-1'..'class-4' or the real names.
-        # Map by index to be robust against either naming convention.
-        _STEEL_IDX = {0: "scratches", 1: "dents", 2: "rust", 3: "other"}
-        _STEEL_DISPLAY = {0: "Scratches", 1: "Dents", 2: "Rust", 3: "Other"}
+        _STEEL_IDX     = {0: "scratches", 1: "dents", 2: "rust", 3: "other"}
+        _STEEL_DISPLAY = {0: "Scratches",  1: "Dents",  2: "Rust",  3: "Other"}
         counts = {"scratches": 0, "dents": 0, "rust": 0, "other": 0}
         for d in detections:
             bucket = _STEEL_IDX.get(d["cls_id"], "other")
             counts[bucket] += 1
-            # Override display name so frontend shows proper label
-            d["class"] = _STEEL_DISPLAY.get(d["cls_id"], d["class"])
+            d["class"]      = _STEEL_DISPLAY.get(d["cls_id"], d["class"])
             d["class_name"] = d["class"]
         evaluation = evaluate_quality(**counts)
         extra = counts
-    else:
+    elif key == "metal":
         from metal.evaluator import MetalEvaluator
         evaluation = MetalEvaluator().evaluate(detections)
+        extra = {"defect_count": total}
+    else:
+        evaluation = _generic_evaluate(detections, key)
         extra = {"defect_count": total}
 
     _, jpg = cv2.imencode(".jpg", annotated, [cv2.IMWRITE_JPEG_QUALITY, 85])
@@ -167,7 +232,7 @@ def save_inspection_record(
             pass
         image_url = f"/api/images/steel/{inspection_id}"
 
-    else:  # metal (and future materials)
+    elif key == "metal":
         from metal.database import save_inspection as metal_save
         metal_save(
             inspection_id = inspection_id,
@@ -188,6 +253,72 @@ def save_inspection_record(
         except Exception:
             pass
         image_url = f"/api/images/metal/{inspection_id}"
+
+    elif key == "fabric":
+        from fabric.database import save_inspection as fabric_save
+        fabric_save(
+            inspection_id = inspection_id,
+            timestamp     = timestamp,
+            material      = cfg["label"],
+            image_path    = str(filename),
+            defect_count  = detection["total_defects"],
+            quality_score = detection["quality_score"],
+            severity      = detection["severity"],
+            status        = status,
+            remarks       = detection["remarks"],
+            defects       = detection["detections"],
+            inspector     = inspector,
+        )
+        try:
+            from reports.generic_report import generate_generic_report
+            report_path = generate_generic_report(inspection_id, key)
+        except Exception:
+            pass
+        image_url = f"/api/images/{key}/{inspection_id}"
+
+    elif key == "pcb":
+        from pcb.database import save_inspection as pcb_save
+        pcb_save(
+            inspection_id = inspection_id,
+            timestamp     = timestamp,
+            material      = cfg["label"],
+            image_path    = str(filename),
+            defect_count  = detection["total_defects"],
+            quality_score = detection["quality_score"],
+            severity      = detection["severity"],
+            status        = status,
+            remarks       = detection["remarks"],
+            defects       = detection["detections"],
+            inspector     = inspector,
+        )
+        try:
+            from reports.generic_report import generate_generic_report
+            report_path = generate_generic_report(inspection_id, key)
+        except Exception:
+            pass
+        image_url = f"/api/images/{key}/{inspection_id}"
+
+    else:  # welding
+        from welding.database import save_inspection as welding_save
+        welding_save(
+            inspection_id = inspection_id,
+            timestamp     = timestamp,
+            material      = cfg["label"],
+            image_path    = str(filename),
+            defect_count  = detection["total_defects"],
+            quality_score = detection["quality_score"],
+            severity      = detection["severity"],
+            status        = status,
+            remarks       = detection["remarks"],
+            defects       = detection["detections"],
+            inspector     = inspector,
+        )
+        try:
+            from reports.generic_report import generate_generic_report
+            report_path = generate_generic_report(inspection_id, key)
+        except Exception:
+            pass
+        image_url = f"/api/images/{key}/{inspection_id}"
 
     return {
         "inspection_id":    inspection_id,

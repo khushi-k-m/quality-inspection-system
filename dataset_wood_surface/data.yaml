@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 6
+names: ['dry_knot', 'edge_knot', 'small_knot', 'sound_knot', 'split', 'wave']
+
+roboflow:
+  workspace: yolo11-yqwwf
+  project: wood-defect-detection-dataset-w0ws3
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/yolo11-yqwwf/wood-defect-detection-dataset-w0ws3/dataset/1

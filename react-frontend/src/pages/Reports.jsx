@@ -6,7 +6,13 @@ import Loading from '../components/Loading'
 import ErrorMessage from '../components/ErrorMessage'
 import { Download, FileText } from 'lucide-react'
 
-const MATERIALS = [{ key: 'steel', label: 'Steel' }, { key: 'metal', label: 'Metal' }]
+const MATERIALS = [
+  { key: 'steel',   label: 'Steel' },
+  { key: 'metal',   label: 'Metal' },
+  { key: 'fabric',  label: 'Fabric' },
+  { key: 'pcb',     label: 'PCB' },
+  { key: 'welding', label: 'Welding' },
+]
 
 export default function Reports() {
   const [material, setMaterial] = useState('steel')

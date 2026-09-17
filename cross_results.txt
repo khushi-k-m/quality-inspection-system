@@ -1,0 +1,11 @@
+BLANK+steel_model -> PASS defects:0
+BLANK+metal_model -> PASS defects:0
+BLANK+fabric_model -> FAIL defects:2
+BLANK+pcb_model -> PASS defects:0
+BLANK+welding_model -> PASS defects:0
+
+fabric_img+steel_model -> PASS defects: 0 dets: []
+metal_img+fabric_model -> FAIL defects: 2 dets: [('hole', 92.3), ('crease', 47.8)]
+steel_img+metal_model -> PASS defects: 0 dets: []
+pcb_img+welding_model -> PASS defects: 0 dets: []
+weld_img+pcb_model -> PASS defects: 0 dets: []

@@ -1,0 +1,461 @@
+INFO:     Started server process [22608]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+==================================================
+Quality Inspection Database Ready
+==================================================
+Database : D:\quality-inspection-system\database\inspection.db
+
+Current inspection columns:
+  - id
+  - inspection_id
+  - timestamp
+  - image_path
+  - scratches
+  - dents
+  - rust
+  - other
+  - total_defects
+  - status
+  - inspector
+  - quality_score
+  - severity
+  - remarks
+==================================================
+INFO:     127.0.0.1:51938 - "OPTIONS /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51938 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51938 - "OPTIONS /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59363 - "OPTIONS /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51938 - "OPTIONS /api/steel/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59363 - "OPTIONS /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59363 - "OPTIONS /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51938 - "OPTIONS /api/steel/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59363 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51938 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62371 - "GET /api/steel/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59363 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51938 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62371 - "GET /api/steel/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62371 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51938 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62371 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51938 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51938 - "OPTIONS /api/fabric/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51938 - "GET /api/fabric/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49669 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53834 - "GET /api/steel/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49874 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49669 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53834 - "GET /api/steel/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49874 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49874 - "OPTIONS /api/welding/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53834 - "OPTIONS /api/welding/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53834 - "GET /api/welding/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49874 - "GET /api/welding/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49874 - "OPTIONS /api/pcb/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53834 - "OPTIONS /api/pcb/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53834 - "GET /api/pcb/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49874 - "GET /api/pcb/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53834 - "OPTIONS /api/fabric/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49874 - "GET /api/fabric/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53834 - "GET /api/fabric/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53834 - "OPTIONS /api/metal/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49874 - "OPTIONS /api/metal/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53834 - "GET /api/metal/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49874 - "GET /api/metal/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49874 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53834 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49874 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53834 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49874 - "GET /api/welding/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54516 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54516 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58899 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58899 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57306 - "GET /api/fabric/analytics HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:62768 - "GET /api/fabric/analytics HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:58548 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:60036 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:58666 - "GET /api/auth/login HTTP/1.1" 405 Method Not Allowed
+INFO:     127.0.0.1:58666 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:63243 - "OPTIONS /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49234 - "OPTIONS /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62546 - "OPTIONS /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55993 - "OPTIONS /api/steel/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52885 - "OPTIONS /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54869 - "OPTIONS /api/steel/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54869 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52885 - "GET /api/steel/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62546 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54869 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52885 - "GET /api/steel/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62546 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52885 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62546 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52885 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62546 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62546 - "OPTIONS /api/fabric/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62546 - "GET /api/fabric/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52885 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62546 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52885 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62546 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54597 - "GET /api/steel/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58962 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54097 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54597 - "GET /api/steel/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58962 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54097 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58962 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54597 - "GET /api/steel/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54097 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58962 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54597 - "GET /api/steel/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54097 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54097 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54597 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54097 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54597 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54597 - "OPTIONS /api/metal/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54597 - "GET /api/metal/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54597 - "GET /api/fabric/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60889 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54597 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60889 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54597 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54597 - "OPTIONS /api/pcb/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54597 - "GET /api/pcb/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60889 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54597 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60889 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54597 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54597 - "OPTIONS /api/welding/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54597 - "GET /api/welding/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60889 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54597 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54597 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60889 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54597 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60889 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54597 - "GET /api/steel/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60889 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54597 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60889 - "GET /api/steel/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60889 - "OPTIONS /api/auth/logout HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54597 - "POST /api/auth/logout HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59424 - "OPTIONS /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59424 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58906 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59424 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58906 - "GET /api/steel/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59424 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61654 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58906 - "GET /api/steel/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54216 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49999 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62859 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64466 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59438 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59723 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55880 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50227 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63188 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53298 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63341 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63547 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64928 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51314 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50314 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53366 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57076 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59226 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64273 - "OPTIONS /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64273 - "OPTIONS /api/camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64273 - "OPTIONS /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64273 - "OPTIONS /api/camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64273 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64273 - "GET /api/camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64273 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64273 - "GET /api/camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53300 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64772 - "OPTIONS /api/steel/inspect HTTP/1.1" 200 OK
+==================================================
+Inspection Saved Successfully
+==================================================
+Inspection ID : INSP20260901223950415210
+Status        : PASS
+Quality Score : 100%
+Severity      : NONE
+Remarks       : No defects detected. Steel product meets quality requirements.
+==================================================
+==================================================
+✅ Inspection Report Generated
+Inspection ID : INSP20260901223950415210
+Report        : D:\quality-inspection-system\output\reports\INSP20260901223950415210_inspection_report.pdf
+==================================================
+INFO:     127.0.0.1:64772 - "POST /api/steel/inspect HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57325 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57325 - "OPTIONS /api/images/steel/INSP20260901223950415210 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64772 - "OPTIONS /api/images/steel/INSP20260901223950415210 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57325 - "GET /api/images/steel/INSP20260901223950415210 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64772 - "GET /api/images/steel/INSP20260901223950415210 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64772 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63918 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62610 - "GET /health HTTP/1.1" 200 OK
+==================================================
+Inspection Saved Successfully
+==================================================
+Inspection ID : INSP20260901224026221774
+Status        : FAIL
+Quality Score : 60%
+Severity      : CRITICAL
+Remarks       : Rust detected. Product requires immediate inspection and corrective action.
+==================================================
+==================================================
+✅ Inspection Report Generated
+Inspection ID : INSP20260901224026221774
+Report        : D:\quality-inspection-system\output\reports\INSP20260901224026221774_inspection_report.pdf
+==================================================
+INFO:     127.0.0.1:62610 - "POST /api/steel/inspect HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62610 - "OPTIONS /api/images/steel/INSP20260901224026221774 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62610 - "OPTIONS /api/images/steel/INSP20260901224026221774 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62610 - "GET /api/images/steel/INSP20260901224026221774 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62610 - "GET /api/images/steel/INSP20260901224026221774 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60692 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50166 - "OPTIONS /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63891 - "OPTIONS /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63891 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50166 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50166 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63891 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63891 - "OPTIONS /api/steel/reports HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60065 - "OPTIONS /api/steel/reports HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50166 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50166 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63891 - "GET /api/steel/reports HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63891 - "GET /api/steel/reports HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63891 - "OPTIONS /api/steel/inspections?page=1&limit=20&status=&severity=&search= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60065 - "OPTIONS /api/steel/inspections?page=1&limit=20&status=&severity=&search= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50166 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50166 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60065 - "GET /api/steel/inspections?page=1&limit=20&status=&severity=&search= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50166 - "GET /api/steel/inspections?page=1&limit=20&status=&severity=&search= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60065 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50166 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60065 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50166 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53699 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54541 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62388 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60913 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60214 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50155 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55600 - "OPTIONS /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55600 - "OPTIONS /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55600 - "OPTIONS /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55600 - "OPTIONS /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55600 - "OPTIONS /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55600 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55600 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55600 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55600 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60819 - "OPTIONS /api/camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61552 - "OPTIONS /api/camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60819 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61552 - "GET /api/camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61552 - "GET /api/camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60819 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57568 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57292 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55963 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54100 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60160 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51235 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61126 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60649 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57429 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50651 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60047 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54334 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50398 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58146 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55076 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54969 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61945 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50706 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57991 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56386 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61982 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54106 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63331 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63541 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53340 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56472 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63656 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64017 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57355 - "GET /api/camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64017 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57355 - "GET /api/camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64017 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53781 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59269 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53781 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59269 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53781 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53781 - "OPTIONS /api/pcb/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53781 - "GET /api/pcb/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59269 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53781 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59269 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53781 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59269 - "OPTIONS /api/metal/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59269 - "GET /api/metal/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59269 - "OPTIONS /api/welding/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59269 - "GET /api/welding/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59269 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59269 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59269 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59269 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59269 - "OPTIONS /api/fabric/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59269 - "GET /api/fabric/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54443 - "OPTIONS /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64847 - "OPTIONS /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57939 - "OPTIONS /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61270 - "OPTIONS /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54443 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64847 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54443 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64847 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64847 - "GET /api/welding/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51693 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59810 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51693 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59810 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58356 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51580 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50727 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50827 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55780 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49669 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62845 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50064 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60757 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61853 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65353 - "GET /api/fabric/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65352 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58947 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61995 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56232 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62513 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62514 - "GET /api/fabric/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62512 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62586 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54656 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51160 - "GET /api/fabric/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61674 - "GET /api/steel/analytics HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:63033 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:63516 - "POST /api/auth/login HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:63526 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:49976 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49979 - "GET /api/metal/analytics HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:49982 - "GET /api/metal/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49990 - "GET /api/fabric/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49992 - "GET /api/pcb/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49994 - "GET /api/welding/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54409 - "OPTIONS /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63048 - "OPTIONS /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57380 - "OPTIONS /api/steel/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53089 - "OPTIONS /api/steel/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60682 - "OPTIONS /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64660 - "OPTIONS /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57380 - "GET /api/steel/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63048 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54409 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63048 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54409 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57380 - "GET /api/steel/inspections?page=1&limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65146 - "OPTIONS /api/camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58988 - "OPTIONS /api/camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63090 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58988 - "GET /api/camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63090 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58988 - "GET /api/camera/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52161 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61160 - "OPTIONS /api/welding/inspect HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61160 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61160 - "POST /api/welding/inspect HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61160 - "OPTIONS /api/images/welding/WINSP20260901233703416653 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59951 - "OPTIONS /api/images/welding/WINSP20260901233703416653 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59951 - "GET /api/images/welding/WINSP20260901233703416653 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61160 - "GET /api/images/welding/WINSP20260901233703416653 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55992 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52030 - "OPTIONS /api/steel/reports HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55992 - "OPTIONS /api/steel/reports HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52030 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55992 - "GET /api/steel/reports HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52030 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55992 - "GET /api/steel/reports HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55496 - "OPTIONS /api/welding/reports HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55496 - "GET /api/welding/reports HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55496 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55496 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55496 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55496 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55496 - "OPTIONS /api/steel/inspections?page=1&limit=20&status=&severity=&search= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50124 - "OPTIONS /api/steel/inspections?page=1&limit=20&status=&severity=&search= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56551 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55496 - "GET /api/steel/inspections?page=1&limit=20&status=&severity=&search= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56551 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50124 - "GET /api/steel/inspections?page=1&limit=20&status=&severity=&search= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50124 - "OPTIONS /api/welding/inspections?page=1&limit=20&status=&severity=&search= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50124 - "GET /api/welding/inspections?page=1&limit=20&status=&severity=&search= HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50124 - "OPTIONS /api/welding/inspections/WINSP20260901233703416653 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60126 - "OPTIONS /api/welding/inspections/WINSP20260901233703416653 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50124 - "GET /api/welding/inspections/WINSP20260901233703416653 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60126 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60126 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50124 - "GET /api/welding/inspections/WINSP20260901233703416653 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60126 - "GET /api/images/welding/WINSP20260901233703416653 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58025 - "GET /api/steel/reports HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59406 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59406 - "GET /api/steel/reports HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58025 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58025 - "OPTIONS /api/steel/reports/INSP20260901224026221774/download HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58025 - "GET /api/steel/reports/INSP20260901224026221774/download HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58454 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52892 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63188 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63188 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63188 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63188 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63188 - "OPTIONS /api/pcb/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63188 - "GET /api/pcb/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63188 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51079 - "GET /api/welding/inspections/WINSP20260901233703416653 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51079 - "GET /api/welding/inspections/WINSP20260901233703416653 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63188 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56416 - "GET /api/images/welding/WINSP20260901233703416653 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63388 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63388 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63388 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63388 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63388 - "OPTIONS /api/fabric/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63388 - "GET /api/fabric/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62964 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53408 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62964 - "GET /api/steel/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53408 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53408 - "OPTIONS /api/metal/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53408 - "GET /api/metal/analytics HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57908 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52266 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61036 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58067 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61752 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54560 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55091 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55927 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64306 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61063 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49673 - "GET /health HTTP/1.1" 200 OK

@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 6
+names: ['missing_hole', 'mouse_bite', 'open_circuit', 'short', 'spur', 'spurious_copper']
+
+roboflow:
+  workspace: michalek
+  project: pcb-defect-detection-kckiu-mj0m9
+  version: 1
+  license: MIT
+  url: https://universe.roboflow.com/michalek/pcb-defect-detection-kckiu-mj0m9/dataset/1

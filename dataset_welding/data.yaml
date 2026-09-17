@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 2
+names: ['0', '1']
+
+roboflow:
+  workspace: wdd-mpjs1
+  project: welding-defect-detection-a3jqd
+  version: 4
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/wdd-mpjs1/welding-defect-detection-a3jqd/dataset/4

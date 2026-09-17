@@ -8,7 +8,13 @@ import Loading from '../components/Loading'
 import ErrorMessage from '../components/ErrorMessage'
 import { Search, ChevronLeft, ChevronRight, Download } from 'lucide-react'
 
-const MATERIALS  = [{ key: 'steel', label: 'Steel' }, { key: 'metal', label: 'Metal' }]
+const MATERIALS  = [
+  { key: 'steel',   label: 'Steel' },
+  { key: 'metal',   label: 'Metal' },
+  { key: 'fabric',  label: 'Fabric' },
+  { key: 'pcb',     label: 'PCB' },
+  { key: 'welding', label: 'Welding' },
+]
 const STATUSES   = ['', 'PASS', 'REWORK', 'FAIL']
 const SEVERITIES = ['', 'NONE', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
 

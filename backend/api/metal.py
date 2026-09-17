@@ -129,15 +129,17 @@ async def metal_upload_inspect(
         raise HTTPException(status_code=422, detail="Could not decode image.")
 
     try:
-        from backend.services.inference_service import run_inference, save_inspection_record
-        detection = run_inference(frame, material="metal")
-        result    = save_inspection_record(detection, inspector="Upload", material="metal")
+        from backend.services.material_validation_service import validate_and_run_inference
+        result = validate_and_run_inference(frame, material="metal")
+        if not result.get("inspection_valid", False):
+            return result
+        from backend.services.inference_service import save_inspection_record
+        persisted = save_inspection_record(result, inspector="Upload", material="metal")
+        return persisted
     except RuntimeError as e:
         raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Inspection failed: {e}")
-
-    return result
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -279,22 +281,15 @@ def list_metal_reports(user=Depends(get_current_user)):
 
 @router.get("/reports/{inspection_id}/download")
 def download_metal_report(inspection_id: str, user=Depends(get_current_user)):
-    pdf_path = REPORTS_DIR / f"{inspection_id}_inspection_report.pdf"
-
-    if not pdf_path.exists():
-        try:
-            from reports.metal_report import generate_metal_report
-            result = generate_metal_report(inspection_id)
-            if result is None:
-                raise HTTPException(status_code=404, detail="Report could not be generated")
-        except HTTPException:
-            raise
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Report generation failed: {e}")
-
-    if not pdf_path.exists():
-        raise HTTPException(status_code=404, detail="Report not found")
-
+    try:
+        from reports.enhanced_report import generate_enhanced_report
+        pdf_path = generate_enhanced_report(inspection_id, "metal")
+        if pdf_path is None:
+            raise HTTPException(status_code=404, detail="Report could not be generated")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Report generation failed: {e}")
     return FileResponse(
         path=str(pdf_path),
         media_type="application/pdf",

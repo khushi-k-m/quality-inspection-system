@@ -1,6 +1,6 @@
 import apiClient from './apiClient'
 
-const BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+const BASE = import.meta.env.VITE_API_BASE_URL || ''
 
 export const getCameraStatus = () => apiClient.get('/api/camera/status')
 export const startCamera = (material = 'steel') =>
