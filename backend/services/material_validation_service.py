@@ -27,10 +27,14 @@ import numpy as np
 from backend.services.material_registry import MATERIALS
 
 # ── Validation configuration (single source of truth) ─────────────────────
+# Blank/uniform images score: lap=0.0, entropy≈0, edge=0.0.
+# Real low-texture materials (fabric, metal) score: lap≥1, entropy≥4, edge≥0.
+# Entropy is the most reliable discriminator. Lap and edge thresholds are
+# set near-zero so only truly featureless frames fail the 2-of-3 vote.
 VALIDATION_CONFIG = {
-    "min_laplacian_variance": 50.0,
-    "min_entropy": 3.5,
-    "min_edge_fraction": 0.01,
+    "min_laplacian_variance": 0.5,   # only pure blank (0.0) fails
+    "min_entropy": 1.0,              # blank=-0.0; real images always >4
+    "min_edge_fraction": 0.0001,     # only pure blank (0.0) fails
     "mismatch_confidence_threshold": 0.70,
     "mismatch_min_detections": 1,
 }
@@ -196,16 +200,26 @@ def build_valid_response(selected_material: str, inference_result: dict) -> dict
 
 
 def _detect_obvious_mismatch(frame: np.ndarray, material: str, selected_result: dict) -> dict | None:
-    """Weak but conservative mismatch heuristic using real model outputs from all materials."""
+    """
+    Conservative mismatch heuristic using real model outputs.
+
+    A mismatch is only flagged when the SELECTED model found ZERO detections
+    but another model fires with high confidence. If the selected model found
+    anything at all, we trust it — cross-firing between defect models is a
+    known limitation and falsely rejecting a valid inspection is worse than
+    missing a mismatch in the ambiguous case.
+    """
     from backend.services.inference_service import run_inference
 
     material_key = str(material).lower()
     selected_total = int(selected_result.get("total_defects", 0) or 0)
-    selected_conf = 0.0
-    selected_detections = selected_result.get("detections", [])
-    if selected_detections:
-        selected_conf = max(float(d.get("confidence", 0.0)) / 100.0 for d in selected_detections)
 
+    # If the selected model detected something, accept the result.
+    if selected_total > 0:
+        return None
+
+    # Selected model found nothing — check whether another model fires
+    # confidently, which would indicate the wrong material was shown.
     candidates = []
     for other_material in MATERIALS:
         if other_material == material_key:
@@ -222,29 +236,15 @@ def _detect_obvious_mismatch(frame: np.ndarray, material: str, selected_result: 
             continue
         candidates.append({
             "material": other_material,
-            "result": other_result,
             "max_conf": max_conf,
             "total": int(other_result.get("total_defects", 0) or 0),
-            "candidate_count": len(dets),
         })
 
     if not candidates:
         return None
 
     best = max(candidates, key=lambda item: (item["max_conf"], item["total"]))
-    if selected_total == 0 and best["total"] >= VALIDATION_CONFIG["mismatch_min_detections"]:
-        return {
-            "detected_material": best["material"],
-            "confidence": best["max_conf"],
-        }
-
-    if selected_total == 0 and selected_conf < 0.35 and best["max_conf"] >= 0.75:
-        return {
-            "detected_material": best["material"],
-            "confidence": best["max_conf"],
-        }
-
-    if selected_total < best["total"] and best["max_conf"] >= VALIDATION_CONFIG["mismatch_confidence_threshold"]:
+    if best["total"] >= VALIDATION_CONFIG["mismatch_min_detections"]:
         return {
             "detected_material": best["material"],
             "confidence": best["max_conf"],
