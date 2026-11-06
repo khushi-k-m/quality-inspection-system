@@ -1,0 +1,5 @@
+﻿image_path,material_class,source_dataset,review_status,review_reason,evidence_reference
+dataset/test/images/6ca387398_jpg.rf.a294ede81e3ce9ee977bace7dcaaa872.jpg,metal,dataset,needs_review,Readable metallic surface with visible surface defects. The image alone does not establish whether the material is steel or another metal. Independent part/specimen or material documentation is required to assign steel or metal.,
+dataset/train/images/154e7e802_jpg.rf.8cc8f23822d312cb9cb66cda7afe8753.jpg,metal,dataset,needs_review,Clearly verified as non-steel metal with independent material evidence,
+dataset/valid/images/b4b5c6a86_jpg.rf.f64e5464b49cd5ada61d8d519d8f4887.jpg,metal,dataset,needs_review,Clearly verified as non-steel metal with independent material evidence,
+dataset/train/images/7eb32e8b8_jpg.rf.4f19f04d2210b0a4df80e32884f4cf6d.jpg,steel,dataset,needs_review,Clearly verified as steel with independent material evidence,

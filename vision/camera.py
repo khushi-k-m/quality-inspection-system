@@ -23,7 +23,7 @@ if str(ROOT_DIR) not in sys.path:
 # ======================================================
 
 from quality.inspector import save_inspection
-from reports.generate_report import generate_report
+from reports.enhanced_report import generate_enhanced_report
 
 
 # ======================================================
@@ -270,11 +270,22 @@ try:
             "Rust": 0,
             "Other": 0
         }
+        detection_details = []
+        class_names = {0: "Scratches", 1: "Dents", 2: "Rust", 3: "Other"}
 
 
         for box in boxes:
 
             cls = int(box.cls[0])
+            coords = box.xyxy[0].tolist()
+            detection_details.append({
+                "defect_class": class_names.get(cls, "Other"),
+                "confidence": round(float(box.conf[0]) * 100, 1),
+                "x1": int(coords[0]),
+                "y1": int(coords[1]),
+                "x2": int(coords[2]),
+                "y2": int(coords[3]),
+            })
 
             if cls == 0:
 
@@ -629,7 +640,9 @@ try:
 
                     remarks=remarks,
 
-                    inspector="AI System"
+                    inspector="AI System",
+
+                    detections=detection_details,
                 )
 
 
@@ -651,9 +664,7 @@ try:
 
             try:
 
-                report_path = generate_report(
-                    inspection_id
-                )
+                report_path = generate_enhanced_report(inspection_id, "steel")
 
 
                 if report_path:

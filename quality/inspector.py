@@ -1,3 +1,4 @@
+import json
 import sqlite3
 from pathlib import Path
 
@@ -28,7 +29,8 @@ def save_inspection(
     quality_score=100,
     severity="NONE",
     remarks="",
-    inspector="AI System"
+    inspector="AI System",
+    detections=None,
 ):
 
     conn = sqlite3.connect(DATABASE_PATH)
@@ -50,9 +52,10 @@ def save_inspection(
             inspector,
             quality_score,
             severity,
-            remarks
+            remarks,
+            detections_json
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             inspection_id,
@@ -67,7 +70,8 @@ def save_inspection(
             inspector,
             quality_score,
             severity,
-            remarks
+            remarks,
+            json.dumps(detections or [])
         )
     )
 

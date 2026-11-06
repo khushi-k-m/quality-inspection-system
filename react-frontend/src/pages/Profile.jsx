@@ -1,34 +1,27 @@
 import { useAuth } from '../context/AuthContext'
-import Header from '../components/Header'
 import { User, Shield, Clock } from 'lucide-react'
 
 export default function Profile() {
   const { user } = useAuth()
-
-  const rows = [
-    { icon: <User size={15} />, label: 'Username', value: user?.username },
-    { icon: <Shield size={15} />, label: 'Role', value: user?.role },
-    { icon: <Clock size={15} />, label: 'Session', value: 'Active' },
-  ]
+  const initial = user?.username?.[0]?.toUpperCase() || 'U'
 
   return (
-    <div className="page">
-      <Header title="Profile" />
-      <div className="page__body">
-        <div className="card profile-card">
-          <div className="profile-avatar" style={{ width: 64, height: 64, fontSize: 26 }}>
-            {user?.username?.[0]?.toUpperCase() || 'U'}
-          </div>
-          <div className="profile-info" style={{ flex: 1 }}>
-            {rows.map(({ icon, label, value }) => (
-              <div key={label} className="detail-row">
-                <span style={{ display: 'flex', alignItems: 'center', gap: 7, color: 'var(--muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '.7px' }}>
-                  {icon} {label}
-                </span>
-                <span style={{ fontWeight: 600 }}>{value}</span>
-              </div>
-            ))}
-          </div>
+    <div className="page-content">
+      <div className="glass-card" style={{ padding: 28, maxWidth: 560, display: 'flex', alignItems: 'center', gap: 24 }}>
+        <div className="profile-avatar">{initial}</div>
+        <div style={{ flex: 1 }}>
+          {[
+            { icon: User,   label: 'Username', value: user?.username },
+            { icon: Shield, label: 'Role',     value: user?.role || 'operator' },
+            { icon: Clock,  label: 'Session',  value: 'Active' },
+          ].map(({ icon: Icon, label, value }) => (
+            <div key={label} className="detail-row">
+              <span className="detail-row__label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Icon size={13} /> {label}
+              </span>
+              <span style={{ fontWeight: 600 }}>{value}</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>

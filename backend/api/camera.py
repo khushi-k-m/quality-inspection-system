@@ -1,15 +1,24 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
+from typing import Optional
 from backend.services.camera_service import camera_service
 from backend.dependencies import get_current_user
-import asyncio
+import time
 
 router = APIRouter(prefix="/api/camera", tags=["camera"])
 
 
 class CameraStartRequest(BaseModel):
-    material: str = "steel"
+    material: str = "auto"
+
+
+class CameraModeRequest(BaseModel):
+    material: str = "auto"
+
+
+class CameraCaptureRequest(BaseModel):
+    inspector: Optional[str] = "AI Camera System"
 
 
 def mjpeg_generator():
@@ -22,7 +31,6 @@ def mjpeg_generator():
                 frame +
                 b"\r\n"
             )
-        import time
         time.sleep(0.033)  # ~30fps cap
 
 
@@ -52,14 +60,24 @@ def start_camera(body: CameraStartRequest = CameraStartRequest(), user=Depends(g
     return result
 
 
+@router.post("/mode")
+def set_camera_mode(body: CameraModeRequest, user=Depends(get_current_user)):
+    """Switch active material or auto-detection mode without stopping the camera."""
+    result = camera_service.set_mode(body.material)
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["message"])
+    return result
+
+
 @router.post("/stop")
 def stop_camera(user=Depends(get_current_user)):
     return camera_service.stop()
 
 
 @router.post("/capture")
-def capture_inspection(user=Depends(get_current_user)):
-    result, error = camera_service.capture_and_save()
+def capture_inspection(body: Optional[CameraCaptureRequest] = None, user=Depends(get_current_user)):
+    inspector = body.inspector if body and body.inspector else "AI Camera System"
+    result, error = camera_service.capture_and_save(inspector=inspector)
     if error:
         raise HTTPException(status_code=500, detail=error)
     return result

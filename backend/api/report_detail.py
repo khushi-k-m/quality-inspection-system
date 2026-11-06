@@ -96,7 +96,8 @@ def _get_record(inspection_id: str, material: str) -> dict:
         from backend.database import get_db
         conn = get_db()
         row = conn.execute(
-            """SELECT inspection_id, timestamp, image_path, scratches, dents, rust, other,
+                 """SELECT inspection_id, timestamp, image_path, scratches, dents, rust, other,
+                     detections_json,
                       total_defects, status, inspector, quality_score, severity, remarks
                FROM inspections WHERE inspection_id = ?""",
             (inspection_id,),
@@ -107,15 +108,24 @@ def _get_record(inspection_id: str, material: str) -> dict:
         d = dict(row)
         d["material"] = "Steel"
         d["defect_count"] = d.get("total_defects", 0)
-        # Build synthetic defect list from counts (steel DB has no per-defect rows)
-        defects = []
-        for cls, cnt_key in [("Scratches", "scratches"), ("Dents", "dents"),
-                              ("Rust", "rust"), ("Other", "other")]:
-            for _ in range(d.get(cnt_key, 0) or 0):
-                defects.append({
-                    "defect_class": cls, "confidence": None,
-                    "x1": None, "y1": None, "x2": None, "y2": None,
-                })
+        # New records retain per-detection coordinates; older rows use counts.
+        import json
+        try:
+            defects = json.loads(d.get("detections_json") or "[]")
+        except (TypeError, ValueError):
+            defects = []
+        if not isinstance(defects, list) or not defects:
+            defects = []
+            for cls, cnt_key in [("Scratches", "scratches"), ("Dents", "dents"),
+                                  ("Rust", "rust"), ("Other", "other")]:
+                for _ in range(d.get(cnt_key, 0) or 0):
+                    defects.append({
+                        "defect_class": cls, "confidence": None,
+                        "x1": None, "y1": None, "x2": None, "y2": None,
+                    })
+        else:
+            for defect in defects:
+                defect.setdefault("defect_class", defect.get("class_name") or defect.get("class") or "Unknown")
         d["defects"] = defects
         return d
 

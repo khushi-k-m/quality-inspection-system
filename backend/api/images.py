@@ -77,3 +77,20 @@ def get_image_auto(inspection_id: str, user=Depends(get_current_user)):
         if path:
             return FileResponse(str(path), media_type="image/jpeg")
     raise HTTPException(status_code=404, detail="Image not found")
+
+
+@router.get("/thermal/{inspection_id}")
+def get_thermal_image(inspection_id: str, user=Depends(get_current_user)):
+    """Return the false-color thermal sheet image."""
+    path = ROOT_DIR / "output" / "reports" / f"{inspection_id}_thermal_sheet.jpg"
+    if path.exists():
+        return FileResponse(str(path), media_type="image/jpeg")
+    try:
+        from reports.enhanced_report import generate_enhanced_report
+        generate_enhanced_report(inspection_id)
+        if path.exists():
+            return FileResponse(str(path), media_type="image/jpeg")
+    except Exception:
+        pass
+    raise HTTPException(status_code=404, detail="Thermal image not found")
+

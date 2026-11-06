@@ -7,6 +7,24 @@ To add a new material (e.g. Fabric), add one entry to MATERIALS.
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent  # project root
+FALLBACK_MODEL_PATH = ROOT_DIR / "yolov8n.pt"
+
+
+def resolve_model_path(config: dict) -> Path:
+    """Return the best available model path for a material.
+
+    The repository ships a generic YOLO weight at the project root, but the
+    material registry historically pointed at missing per-material folders.
+    Use the specific trained model when it exists; otherwise fall back to the
+    available generic model so the app can still boot and start camera capture.
+    """
+    model_path = Path(config["model_path"])
+    if model_path.exists():
+        return model_path
+    if FALLBACK_MODEL_PATH.exists():
+        return FALLBACK_MODEL_PATH
+    return model_path
+
 
 MATERIALS = {
     "steel": {
@@ -72,5 +90,14 @@ def get_material_config(material: str) -> dict:
             f"Allowed: {sorted(ALLOWED_MATERIALS)}"
         )
     cfg = MATERIALS[material].copy()
+    cfg["model_path"] = resolve_model_path(cfg)
     cfg["output_dir"].mkdir(parents=True, exist_ok=True)
     return cfg
+
+
+def get_model_status() -> dict:
+    """Return ready/not_found status for the registry and any fallback weights."""
+    return {
+        material: "ready" if resolve_model_path(cfg).exists() else "not_found"
+        for material, cfg in MATERIALS.items()
+    }

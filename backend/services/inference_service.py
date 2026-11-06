@@ -224,10 +224,11 @@ def save_inspection_record(
             severity      = detection["severity"],
             remarks       = detection["remarks"],
             inspector     = inspector,
+            detections    = detection.get("detections", []),
         )
         try:
-            from reports.generate_report import generate_report
-            report_path = generate_report(inspection_id)
+            from reports.enhanced_report import generate_enhanced_report
+            report_path = generate_enhanced_report(inspection_id, key)
         except Exception:
             pass
         image_url = f"/api/images/steel/{inspection_id}"
@@ -248,8 +249,8 @@ def save_inspection_record(
             material      = cfg["label"],
         )
         try:
-            from reports.metal_report import generate_metal_report
-            report_path = generate_metal_report(inspection_id)
+            from reports.enhanced_report import generate_enhanced_report
+            report_path = generate_enhanced_report(inspection_id, key)
         except Exception:
             pass
         image_url = f"/api/images/metal/{inspection_id}"
@@ -270,8 +271,8 @@ def save_inspection_record(
             inspector     = inspector,
         )
         try:
-            from reports.generic_report import generate_generic_report
-            report_path = generate_generic_report(inspection_id, key)
+            from reports.enhanced_report import generate_enhanced_report
+            report_path = generate_enhanced_report(inspection_id, key)
         except Exception:
             pass
         image_url = f"/api/images/{key}/{inspection_id}"
@@ -292,8 +293,8 @@ def save_inspection_record(
             inspector     = inspector,
         )
         try:
-            from reports.generic_report import generate_generic_report
-            report_path = generate_generic_report(inspection_id, key)
+            from reports.enhanced_report import generate_enhanced_report
+            report_path = generate_enhanced_report(inspection_id, key)
         except Exception:
             pass
         image_url = f"/api/images/{key}/{inspection_id}"
@@ -314,8 +315,8 @@ def save_inspection_record(
             inspector     = inspector,
         )
         try:
-            from reports.generic_report import generate_generic_report
-            report_path = generate_generic_report(inspection_id, key)
+            from reports.enhanced_report import generate_enhanced_report
+            report_path = generate_enhanced_report(inspection_id, key)
         except Exception:
             pass
         image_url = f"/api/images/{key}/{inspection_id}"
@@ -331,5 +332,6 @@ def save_inspection_record(
         "total_defects":    detection["total_defects"],
         "detections":       detection["detections"],
         "image_url":        image_url,
+        "thermal_sheet_url": f"/api/images/thermal/{inspection_id}",
         "report_available": report_path is not None,
     }

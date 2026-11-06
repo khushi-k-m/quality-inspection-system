@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { forgotPassword } from '../api/auth'
-import { Shield, Mail } from 'lucide-react'
+import { ScanLine, Mail } from 'lucide-react'
 
 export default function ForgotPassword() {
-  const [email, setEmail]     = useState('')
+  const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError]     = useState('')
-  const [result, setResult]   = useState(null)
+  const [error, setError] = useState('')
+  const [result, setResult] = useState(null)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -17,98 +17,73 @@ export default function ForgotPassword() {
       const res = await forgotPassword(email.trim())
       setResult(res.data)
     } catch (err) {
-      setError(err.response?.data?.detail || 'Request failed. Please try again.')
-    } finally {
-      setLoading(false)
-    }
+      setError(err.response?.data?.detail || 'Request failed.')
+    } finally { setLoading(false) }
   }
 
   return (
-    <div className="login-page">
-      <div className="login-left">
-        <div className="login-left__content">
-          <div className="login-brand">
-            <Shield size={52} className="login-brand__icon" />
-            <h1 className="login-brand__name">InspectAI</h1>
-            <p className="login-brand__tagline">AI-Powered Industrial Quality Inspection System</p>
-          </div>
-        </div>
-      </div>
+    <div className="auth-page">
+      <video className="auth-video" autoPlay loop muted playsInline src="/bg-video.mp4" />
+      <div className="auth-overlay" />
+      <div className="auth-glow auth-glow--blue" />
+      <div className="auth-glow auth-glow--purple" />
 
-      <div className="login-right">
-        <div className="login-card">
-          <div className="login-card__header">
-            <h2>Forgot Password</h2>
-            <p>Enter your registered email to receive a reset token.</p>
+      <div className="auth-card-wrap">
+        <div className="auth-card">
+          <div className="auth-card__brand">
+            <div className="auth-card__logo"><ScanLine size={22} /></div>
+            <div>
+              <p className="auth-card__sys">AI POWERED DEFECT DETECTION SYSTEM</p>
+            </div>
           </div>
+
+          <h2 className="auth-card__title">Forgot Password</h2>
+          <p className="auth-card__hint">Enter your registered email to receive a reset token.</p>
 
           {result ? (
             <div style={{ marginTop: 24 }}>
-              <div style={{ padding: '14px', border: '1px solid rgba(69,214,209,.3)', borderRadius: 7, color: 'var(--cyan)', background: 'rgba(69,214,209,.07)', fontSize: 13, lineHeight: 1.6 }}>
+              <div className="auth-success" style={{ textAlign: 'left', lineHeight: 1.7 }}>
                 {result.smtp_configured === false ? (
                   <>
-                    <strong>Development mode — SMTP not configured.</strong>
-                    <br />
+                    <strong>Development mode — SMTP not configured.</strong><br />
                     {result.dev_token ? (
                       <>
-                        Your reset token: <br />
-                        <code style={{ display: 'block', marginTop: 8, padding: '8px 10px', background: 'rgba(0,0,0,.3)', borderRadius: 5, fontFamily: 'var(--mono)', fontSize: 12, wordBreak: 'break-all' }}>
+                        Your reset token:<br />
+                        <code style={{ display: 'block', marginTop: 8, padding: '8px 10px', background: 'rgba(0,0,0,.4)', borderRadius: 6, fontSize: 11, wordBreak: 'break-all', fontFamily: 'monospace' }}>
                           {result.dev_token}
                         </code>
                         <br />
                         Copy this token and use it on the{' '}
-                        <Link to="/reset-password" style={{ color: 'var(--cyan)', textDecoration: 'underline' }}>Reset Password</Link> page.
-                        <br />
-                        <span style={{ color: 'var(--muted)', fontSize: 11 }}>
-                          In production, configure SMTP_HOST, SMTP_USER, SMTP_PASSWORD, SMTP_FROM environment variables.
-                        </span>
+                        <Link to="/reset-password" className="auth-link">Reset Password</Link> page.
                       </>
                     ) : (
-                      <span style={{ color: 'var(--muted)' }}>
-                        If that email is registered, a reset token would be sent. (No token returned — email not found or already processed.)
-                      </span>
+                      <span style={{ color: 'var(--t-muted)' }}>If that email is registered, a reset token would be sent.</span>
                     )}
                   </>
-                ) : (
-                  result.message
-                )}
+                ) : result.message}
               </div>
-              <p style={{ marginTop: 18, textAlign: 'center', fontSize: 12, color: 'var(--muted)' }}>
-                Have a token?{' '}
-                <Link to="/reset-password" style={{ color: 'var(--cyan)' }}>Reset your password</Link>
+              <p style={{ marginTop: 16, textAlign: 'center', fontSize: 12, color: 'var(--t-muted)' }}>
+                Have a token? <Link to="/reset-password" className="auth-link">Reset your password</Link>
               </p>
             </div>
           ) : (
-            <form className="login-form" onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label className="form-label">Email Address</label>
-                <div className="form-input-wrap">
-                  <input
-                    className="form-input"
-                    type="email"
-                    placeholder="Enter your registered email"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    required
-                    autoFocus
-                    style={{ paddingRight: 40 }}
-                  />
-                  <span className="form-input-icon" style={{ pointerEvents: 'none' }}>
-                    <Mail size={15} />
-                  </span>
+            <form className="auth-form" onSubmit={handleSubmit}>
+              <div className="auth-field">
+                <label className="auth-label">Email Address</label>
+                <div className="auth-input-wrap">
+                  <input className="auth-input" type="email" placeholder="Enter your registered email" value={email} onChange={e => setEmail(e.target.value)} required autoFocus style={{ paddingRight: 40 }} />
+                  <span className="auth-eye" style={{ pointerEvents: 'none' }}><Mail size={14} /></span>
                 </div>
               </div>
-
-              {error && <div className="login-error">{error}</div>}
-
+              {error && <div className="auth-error">{error}</div>}
               <button type="submit" className="btn btn--primary btn--full" disabled={loading}>
-                {loading ? <><div className="spinner spinner--sm" /> Sending…</> : 'Send Reset Token'}
+                {loading ? <><div className="spin" /> Sending…</> : 'Send Reset Token'}
               </button>
             </form>
           )}
 
-          <p className="login-card__footer">
-            <Link to="/login" style={{ color: 'var(--cyan)' }}>← Back to Sign In</Link>
+          <p className="auth-footer">
+            <Link to="/login" className="auth-link">← Back to Sign In</Link>
           </p>
         </div>
       </div>

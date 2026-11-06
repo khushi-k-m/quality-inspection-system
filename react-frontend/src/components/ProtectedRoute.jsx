@@ -5,7 +5,7 @@ export default function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
   if (loading) return (
     <div className="full-center">
-      <div className="spinner" />
+      <div className="loading__ring" />
     </div>
   )
   if (!user) return <Navigate to="/login" replace />

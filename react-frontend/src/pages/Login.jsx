@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { Eye, EyeOff, Shield, Cpu, Activity, Zap } from 'lucide-react'
+import { Eye, EyeOff, ScanLine } from 'lucide-react'
 
 export default function Login() {
   const { login } = useAuth()
@@ -17,73 +17,50 @@ export default function Login() {
     setLoading(true)
     try {
       await login(form.username, form.password)
-      navigate('/dashboard')
+      navigate('/home')
     } catch (err) {
-      const msg = err.response?.data?.detail || 'Login failed. Check your credentials.'
-      setError(msg)
+      setError(err.response?.data?.detail || 'Login failed. Check your credentials.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="login-page">
-      {/* Left panel */}
-      <div className="login-left">
-        <div className="login-left__content">
-          <div className="login-brand">
-            <Shield size={52} className="login-brand__icon" />
-            <h1 className="login-brand__name">InspectAI </h1>
-            <p className="login-brand__tagline">
-              AI-Powered Industrial Quality Inspection System
-            </p>
+    <div className="auth-page">
+      {/* Video background */}
+      <video
+        className="auth-video"
+        autoPlay
+        loop
+        muted
+        playsInline
+        src="/bg-video.mp4"
+      />
+      <div className="auth-overlay" />
+      <div className="auth-glow auth-glow--blue" />
+      <div className="auth-glow auth-glow--purple" />
+
+      {/* Card */}
+      <div className="auth-card-wrap">
+        <div className="auth-card">
+          <div className="auth-card__brand">
+            <div className="auth-card__logo">
+              <ScanLine size={22} />
+            </div>
+            <div>
+              <p className="auth-card__sys">AI POWERED DEFECT DETECTION SYSTEM</p>
+              <p className="auth-card__sub">Intelligent • Automated • AI-Based Inspection</p>
+            </div>
           </div>
 
-          <div className="login-features">
-            <div className="login-feature">
-              <Cpu size={20} />
-              <span>YOLOv8 Real-Time Defect Detection</span>
-            </div>
-            <div className="login-feature">
-              <Activity size={20} />
-              <span>Live Camera Inspection Stream</span>
-            </div>
-            <div className="login-feature">
-              <Zap size={20} />
-              <span>Automated Quality Scoring & Reports</span>
-            </div>
-          </div>
+          <h2 className="auth-card__title">Welcome back</h2>
+          <p className="auth-card__hint">Sign in to your inspection dashboard</p>
 
-          <div className="login-stats">
-            <div className="login-stat">
-              <span className="login-stat__value">10+</span>
-              <span className="login-stat__label">Defect Classes</span>
-            </div>
-            <div className="login-stat">
-              <span className="login-stat__value">Real-Time</span>
-              <span className="login-stat__label">Detection</span>
-            </div>
-            <div className="login-stat">
-              <span className="login-stat__value">PDF</span>
-              <span className="login-stat__label">Auto Reports</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Right panel */}
-      <div className="login-right">
-        <div className="login-card">
-          <div className="login-card__header">
-            <h2>Welcome Back</h2>
-            <p>Sign in to your inspection dashboard</p>
-          </div>
-
-          <form className="login-form" onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label className="form-label">Username or Email</label>
+          <form className="auth-form" onSubmit={handleSubmit}>
+            <div className="auth-field">
+              <label className="auth-label">Username or Email</label>
               <input
-                className="form-input"
+                className="auth-input"
                 type="text"
                 placeholder="Enter username or email"
                 value={form.username}
@@ -93,49 +70,37 @@ export default function Login() {
               />
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Password</label>
-              <div className="form-input-wrap">
+            <div className="auth-field">
+              <label className="auth-label">Password</label>
+              <div className="auth-input-wrap">
                 <input
-                  className="form-input"
+                  className="auth-input"
                   type={showPw ? 'text' : 'password'}
                   placeholder="Enter password"
                   value={form.password}
                   onChange={e => setForm({ ...form, password: e.target.value })}
                   required
                 />
-                <button
-                  type="button"
-                  className="form-input-icon"
-                  onClick={() => setShowPw(!showPw)}
-                >
-                  {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                <button type="button" className="auth-eye" onClick={() => setShowPw(p => !p)}>
+                  {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
             </div>
 
-            {error && (
-              <div className="login-error">
-                {error}
-              </div>
-            )}
+            {error && <div className="auth-error">{error}</div>}
 
-            <button
-              type="submit"
-              className="btn btn--primary btn--full"
-              disabled={loading}
-            >
-              {loading ? <><div className="spinner spinner--sm" /> Signing in...</> : 'Sign In'}
+            <button type="submit" className="btn btn--primary btn--full" disabled={loading}>
+              {loading ? <><div className="spin" /> Signing in…</> : 'Sign In'}
             </button>
 
-            <p style={{ margin: 0, textAlign: 'center', fontSize: 12 }}>
-              <Link to="/forgot-password" style={{ color: 'var(--muted)' }}>Forgot Password?</Link>
+            <p className="auth-link-row">
+              <Link to="/forgot-password" className="auth-link">Forgot Password?</Link>
             </p>
           </form>
 
-          <p className="login-card__footer">
+          <p className="auth-footer">
             Don&apos;t have an account?{' '}
-            <Link to="/register" style={{ color: 'var(--cyan)' }}>Create Account</Link>
+            <Link to="/register" className="auth-link">Create Account</Link>
           </p>
         </div>
       </div>

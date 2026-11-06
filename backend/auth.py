@@ -15,6 +15,8 @@ _ROOT_ENV = Path(__file__).resolve().parent.parent / ".env"
 load_dotenv(dotenv_path=_ROOT_ENV, override=False)
 
 SECRET_KEY = os.environ.get("JWT_SECRET")
+DEFAULT_APP_USERNAME = os.environ.get("APP_USERNAME", "operator").strip() or "operator"
+DEFAULT_APP_PASSWORD = os.environ.get("APP_PASSWORD", "operator123")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 480  # 8 hours
 
@@ -55,6 +57,33 @@ def _verify_password(password: str, encoded: str) -> bool:
 RESET_TOKEN_EXPIRE_MINUTES = int(os.environ.get("RESET_TOKEN_EXPIRE_MINUTES", "30"))
 
 
+def _ensure_default_operator_user() -> None:
+    """Provision a default operator account for local development if not present."""
+    if not DEFAULT_APP_USERNAME:
+        return
+    conn = _connect()
+    try:
+        row = conn.execute(
+            "SELECT id FROM users WHERE username = ?",
+            (DEFAULT_APP_USERNAME,),
+        ).fetchone()
+        if row is None:
+            conn.execute(
+                """
+                INSERT INTO users (username, email, password_hash, role, is_active)
+                VALUES (?, ?, ?, 'operator', 1)
+                """,
+                (
+                    DEFAULT_APP_USERNAME,
+                    f"{DEFAULT_APP_USERNAME}@local",
+                    _hash_password(DEFAULT_APP_PASSWORD),
+                ),
+            )
+        conn.commit()
+    finally:
+        conn.close()
+
+
 def initialize_auth_database():
     """Create the users and password_reset_tokens tables in users.db."""
     conn = _connect()
@@ -83,6 +112,7 @@ def initialize_auth_database():
     """)
     conn.commit()
     conn.close()
+    _ensure_default_operator_user()
 
 
 def register_user(username: str, email: str, password: str) -> dict:

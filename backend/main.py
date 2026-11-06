@@ -104,13 +104,10 @@ def initialize_databases():
 
 @app.get("/health")
 def health():
-    from backend.services.material_registry import MATERIALS
+    from backend.services.material_registry import MATERIALS, get_model_status
     from metal.database import db_status as metal_db_status
 
-    models = {
-        mat: cfg["model_path"].exists()
-        for mat, cfg in MATERIALS.items()
-    }
+    models = get_model_status()
 
     # Check database files exist
     db_files = {

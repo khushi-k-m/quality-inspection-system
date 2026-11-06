@@ -99,6 +99,16 @@ def create_database():
         print("✅ Added column: remarks")
 
 
+    if "detections_json" not in existing_columns:
+
+        cursor.execute("""
+            ALTER TABLE inspections
+            ADD COLUMN detections_json TEXT DEFAULT '[]'
+        """)
+
+        print("Added column: detections_json")
+
+
     conn.commit()
     conn.close()
 

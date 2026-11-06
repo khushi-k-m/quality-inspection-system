@@ -1,10 +1,34 @@
 import { useEffect, useState } from 'react'
-import Header from '../components/Header'
+import { useAuth } from '../context/AuthContext'
+import { useNavigate } from 'react-router-dom'
 import Loading from '../components/Loading'
 import apiClient from '../api/apiClient'
-import { Settings as SettingsIcon, Info } from 'lucide-react'
+import { Settings as SettingsIcon, User, Shield, Server, Cpu, LogOut } from 'lucide-react'
+
+function Section({ icon: Icon, title, children }) {
+  return (
+    <div className="settings-section">
+      <div className="settings-section__hdr">
+        <Icon size={15} />
+        <h3 className="settings-section__title">{title}</h3>
+      </div>
+      <div className="settings-section__body">{children}</div>
+    </div>
+  )
+}
+
+function Row({ label, value, valueColor }) {
+  return (
+    <div className="settings-row">
+      <span className="settings-row__label">{label}</span>
+      <span className="settings-row__value" style={valueColor ? { color: valueColor } : {}}>{value ?? '—'}</span>
+    </div>
+  )
+}
 
 export default function Settings() {
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
   const [health, setHealth] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -15,73 +39,69 @@ export default function Settings() {
       .finally(() => setLoading(false))
   }, [])
 
+  const handleLogout = async () => { await logout(); navigate('/login') }
+
+  const statusColor = (v, good, warn) => {
+    if (v === good) return '#4ade80'
+    if (warn && v === warn) return '#fb923c'
+    return '#f87171'
+  }
+
   return (
-    <div className="page">
-      <Header title="Settings" />
-      <div className="page__body">
-        <div className="card">
-          <h3 className="card__title"><SettingsIcon size={16} /> System Information</h3>
-          <div className="settings-info">
-            <Info size={16} />
-            <p>
-              Camera, model, and inspection settings are configured in the backend.
-              Edit <code>backend/services/material_registry.py</code> to add new materials or adjust model paths.
-            </p>
-          </div>
+    <div className="page-content">
+      <div className="settings-grid">
+        {/* Account */}
+        <Section icon={User} title="Account">
+          <Row label="Username" value={user?.username} />
+          <Row label="Role"     value={user?.role || 'operator'} />
+          <Row label="Session"  value="Active" valueColor="#4ade80" />
+        </Section>
 
-          {loading && <Loading text="Loading system info..." />}
-
+        {/* System */}
+        <Section icon={Server} title="System Information">
+          {loading && <Loading text="Loading system info…" />}
+          {!loading && !health && <p className="empty-text">Unable to connect to backend.</p>}
           {!loading && health && (
-            <div className="settings-grid" style={{ marginTop: 18 }}>
-              <div className="settings-item">
-                <span className="settings-label">Backend Status</span>
-                <span className="settings-value" style={{ color: health.status === 'online' ? 'var(--green)' : 'var(--red)' }}>
-                  {health.status}
-                </span>
-              </div>
-              <div className="settings-item">
-                <span className="settings-label">Steel Database</span>
-                <span className="settings-value" style={{ color: health.database_steel === 'online' ? 'var(--green)' : 'var(--red)' }}>
-                  {health.database_steel}
-                </span>
-              </div>
-              <div className="settings-item">
-                <span className="settings-label">Metal Database</span>
-                <span className="settings-value" style={{ color: health.database_metal === 'online' ? 'var(--green)' : 'var(--red)' }}>
-                  {health.database_metal}
-                </span>
-              </div>
-              <div className="settings-item">
-                <span className="settings-label">Camera</span>
-                <span className="settings-value" style={{ color: health.camera === 'connected' ? 'var(--green)' : 'var(--amber)' }}>
-                  {health.camera}
-                </span>
-              </div>
-              {health.models && Object.entries(health.models).map(([mat, status]) => (
-                <div key={mat} className="settings-item">
-                  <span className="settings-label">{mat.charAt(0).toUpperCase() + mat.slice(1)} Model</span>
-                  <span className="settings-value" style={{ color: status === 'ready' ? 'var(--green)' : 'var(--red)' }}>
-                    {status}
-                  </span>
-                </div>
-              ))}
-              <div className="settings-item">
-                <span className="settings-label">Report Format</span>
-                <span className="settings-value">PDF (ReportLab)</span>
-              </div>
-              <div className="settings-item">
-                <span className="settings-label">Detection Engine</span>
-                <span className="settings-value">YOLOv8</span>
-              </div>
-            </div>
+            <>
+              <Row label="Backend Status"   value={health.status}           valueColor={statusColor(health.status, 'online')} />
+              <Row label="Steel Database"   value={health.database_steel}   valueColor={statusColor(health.database_steel, 'online')} />
+              <Row label="Metal Database"   value={health.database_metal}   valueColor={statusColor(health.database_metal, 'online')} />
+              <Row label="Fabric Database"  value={health.database_fabric}  valueColor={statusColor(health.database_fabric, 'online')} />
+              <Row label="PCB Database"     value={health.database_pcb}     valueColor={statusColor(health.database_pcb, 'online')} />
+              <Row label="Welding Database" value={health.database_welding} valueColor={statusColor(health.database_welding, 'online')} />
+              <Row label="Camera"           value={health.camera}           valueColor={statusColor(health.camera, 'connected', 'disconnected')} />
+            </>
           )}
+        </Section>
 
-          {!loading && !health && (
-            <p className="empty-text" style={{ marginTop: 16 }}>
-              Unable to connect to backend. Start the server to view system information.
-            </p>
+        {/* AI Models */}
+        <Section icon={Cpu} title="AI Models">
+          {loading && <Loading text="Loading model status…" />}
+          {!loading && health?.models && Object.entries(health.models).map(([mat, status]) => (
+            <Row
+              key={mat}
+              label={`${mat.charAt(0).toUpperCase() + mat.slice(1)} Model`}
+              value={status}
+              valueColor={statusColor(status, 'ready')}
+            />
+          ))}
+          {!loading && health && (
+            <>
+              <Row label="Detection Engine" value="YOLOv8" />
+              <Row label="Report Format"    value="PDF (ReportLab)" />
+            </>
           )}
-        </div>
+        </Section>
+
+        {/* Security */}
+        <Section icon={Shield} title="Security">
+          <p className="settings-info-text">
+            Passwords are stored as PBKDF2 hashes. To change your password, use the Forgot Password flow from the login page.
+          </p>
+          <button className="btn btn--danger" style={{ marginTop: 16, width: '100%' }} onClick={handleLogout}>
+            <LogOut size={14} /> Sign Out
+          </button>
+        </Section>
       </div>
     </div>
   )
